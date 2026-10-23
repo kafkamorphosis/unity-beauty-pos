@@ -17,7 +17,14 @@ async function login(page: Page) {
   await page.getByLabel("Login").fill(user!);
   await page.getByLabel("Parol").fill(pass!);
   await page.getByRole("button", { name: "Kirish" }).click();
-  await page.waitForURL((u) => !u.pathname.startsWith("/login"));
+  // Either we leave /login, or the form shows why not — never wait forever.
+  const alert = page.getByRole("alert");
+  await Promise.race([
+    page.waitForURL((u) => !u.pathname.startsWith("/login"), { timeout: 20_000 }),
+    alert.waitFor({ timeout: 20_000 }).then(async () => {
+      throw new Error(`Login rejected: ${(await alert.innerText()).trim()} — check E2E_SELLER_USER / E2E_SELLER_PASS in .env.test.local`);
+    }),
+  ]);
 }
 
 async function addFirstProduct(page: Page) {
