@@ -162,6 +162,11 @@ export type Database = {
       adjust_stock: { Args: { p_new_stock: number; p_product_id: string; p_expected_stock?: number }; Returns: ProductRow };
       change_stock: { Args: { p_delta: number; p_product_id: string }; Returns: ProductRow };
       app_role: { Args: never; Returns: Database["public"]["Enums"]["app_role"] };
+      analytics_report: { Args: { p_from: string; p_to: string; p_seller?: string | null }; Returns: Json };
+      least_sold: {
+        Args: { p_days: number; p_seller?: string | null; p_limit?: number };
+        Returns: { product_id: string; name: string; photo_path: string | null; stock: number; qty_sold: number }[];
+      };
       cancel_order: { Args: { p_order_id: string }; Returns: OrderRow };
       create_order: {
         Args: {
