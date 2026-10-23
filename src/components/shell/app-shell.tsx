@@ -1,22 +1,48 @@
 "use client";
 
+import { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { LogOut, WifiOff } from "lucide-react";
+import { LogOut, MoreHorizontal, WifiOff } from "lucide-react";
+import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "@/components/ui/sheet";
+import { useLowStockCount } from "@/features/notifications/use-low-stock-count";
 import { supabaseBrowser } from "@/lib/supabase/client";
 import { uz } from "@/lib/i18n/uz";
 import { cn } from "@/lib/utils";
-import { NAV, isActive, type NavKey } from "./nav-items";
+import { NAV, isActive, type NavItem, type NavKey } from "./nav-items";
 import { useOnline } from "./use-online";
 
 type ShellUser = { fullName: string; role: "admin" | "owner" | "seller" };
+
+function Badge({ count, inverted }: { count: number | null; inverted?: boolean }) {
+  if (!count) return null;
+  return (
+    <span
+      aria-label={uz.notifications.badge(count)}
+      className={cn(
+        "num min-w-5 rounded-full px-1.5 text-center text-[0.7rem] leading-5 font-bold",
+        inverted ? "bg-cell text-ink" : "bg-ink text-cell",
+      )}
+    >
+      {count > 99 ? "99+" : count}
+    </span>
+  );
+}
 
 export function AppShell({ navKey, user, children }: { navKey: NavKey; user: ShellUser; children: React.ReactNode }) {
   const nav = NAV[navKey];
   const pathname = usePathname();
   const router = useRouter();
   const online = useOnline();
+  const lowStock = useLowStockCount(nav.some((i) => i.badge === "lowStock"));
+  const [moreOpen, setMoreOpen] = useState(false);
+  const badgeFor = (item: NavItem) => (item.badge === "lowStock" ? lowStock : null);
+
+  const barItems = nav.filter((i) => !i.more);
+  const moreItems = nav.filter((i) => i.more);
+  const moreActive = moreItems.some((i) => isActive(pathname, i.href));
+  const moreBadge = moreItems.reduce((n, i) => n + (badgeFor(i) ?? 0), 0);
 
   async function signOut() {
     await supabaseBrowser().auth.signOut();
@@ -39,19 +65,22 @@ export function AppShell({ navKey, user, children }: { navKey: NavKey; user: She
                 key={item.href}
                 href={item.href}
                 aria-current={active ? "page" : undefined}
+                title={item.label}
                 className={cn(
-                  "flex items-center gap-2 border-r border-ink px-5 text-sm font-semibold transition-colors duration-150",
+                  "flex items-center gap-2 border-r border-ink px-4 text-sm font-semibold transition-colors duration-150 xl:px-5",
                   active ? "bg-ink text-cell" : "text-ink hover:bg-paper",
                 )}
               >
                 <item.icon className="size-4" aria-hidden />
-                {item.label}
+                {/* Icons only between md and xl so six destinations fit beside the logo. */}
+                <span className={cn(nav.length > 4 && "sr-only xl:not-sr-only")}>{item.label}</span>
+                <Badge count={badgeFor(item)} inverted={active} />
               </Link>
             );
           })}
         </nav>
         <div className="ml-auto flex items-stretch">
-          <div className="hidden flex-col justify-center border-l border-ink px-4 leading-tight sm:flex">
+          <div className="hidden flex-col justify-center border-l border-ink px-4 leading-tight lg:flex">
             <span className="text-sm font-semibold">{user.fullName}</span>
             <span className="caption">{uz.roles[user.role]}</span>
           </div>
@@ -79,9 +108,9 @@ export function AppShell({ navKey, user, children }: { navKey: NavKey; user: She
       <nav
         aria-label="Asosiy"
         className="fixed inset-x-0 bottom-0 z-40 grid border-t border-ink bg-cell pb-[env(safe-area-inset-bottom)] md:hidden"
-        style={{ gridTemplateColumns: `repeat(${nav.length}, minmax(0, 1fr))` }}
+        style={{ gridTemplateColumns: `repeat(${barItems.length + (moreItems.length ? 1 : 0)}, minmax(0, 1fr))` }}
       >
-        {nav.map((item, i) => {
+        {barItems.map((item, i) => {
           const active = isActive(pathname, item.href);
           return (
             <Link
@@ -89,7 +118,7 @@ export function AppShell({ navKey, user, children }: { navKey: NavKey; user: She
               href={item.href}
               aria-current={active ? "page" : undefined}
               className={cn(
-                "flex h-16 flex-col items-center justify-center gap-1 text-[0.72rem] font-semibold",
+                "relative flex h-16 flex-col items-center justify-center gap-1 text-[0.72rem] font-semibold",
                 i > 0 && "border-l border-ink",
                 active ? "bg-ink text-cell" : "text-ink",
               )}
@@ -99,7 +128,54 @@ export function AppShell({ navKey, user, children }: { navKey: NavKey; user: She
             </Link>
           );
         })}
+        {moreItems.length > 0 && (
+          <button
+            type="button"
+            onClick={() => setMoreOpen(true)}
+            aria-expanded={moreOpen}
+            className={cn(
+              "relative flex h-16 flex-col items-center justify-center gap-1 border-l border-ink text-[0.72rem] font-semibold",
+              moreActive ? "bg-ink text-cell" : "text-ink",
+            )}
+          >
+            <MoreHorizontal className="size-5" aria-hidden />
+            {uz.nav.more}
+            {moreBadge > 0 && (
+              <span className="absolute top-1.5 right-[calc(50%-1.4rem)]">
+                <Badge count={moreBadge} inverted={moreActive} />
+              </span>
+            )}
+          </button>
+        )}
       </nav>
+
+      <Sheet open={moreOpen} onOpenChange={setMoreOpen}>
+        <SheetContent side="bottom" className="gap-0 border-t border-ink p-0 md:hidden">
+          <SheetHeader className="border-b border-ink px-4 py-3">
+            <SheetTitle>{uz.nav.more}</SheetTitle>
+            <SheetDescription className="sr-only">{uz.nav.more}</SheetDescription>
+          </SheetHeader>
+          <ul className="pb-[env(safe-area-inset-bottom)]">
+            {moreItems.map((item) => {
+              const active = isActive(pathname, item.href);
+              return (
+                <li key={item.href} className="border-b border-rule-soft last:border-0">
+                  <Link
+                    href={item.href}
+                    onClick={() => setMoreOpen(false)}
+                    aria-current={active ? "page" : undefined}
+                    className={cn("flex h-14 items-center gap-3 px-4 text-base font-semibold", active && "bg-ink text-cell")}
+                  >
+                    <item.icon className="size-5" aria-hidden />
+                    <span className="flex-1">{item.label}</span>
+                    <Badge count={badgeFor(item)} inverted={active} />
+                  </Link>
+                </li>
+              );
+            })}
+          </ul>
+        </SheetContent>
+      </Sheet>
     </div>
   );
 }

@@ -153,6 +153,7 @@ export type Database = {
       };
     };
     Views: {
+      low_stock_products: { Row: ProductRow; Relationships: [] };
       inventory_summary: {
         Row: { cost_value: number | null; retail_value: number | null; wholesale_value: number | null };
         Relationships: [];

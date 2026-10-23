@@ -253,6 +253,15 @@ export const uz = {
     empty: "Bu davrda savdo yoʻq",
     noProducts: "Ombordagi barcha mahsulotlar sotilgan yoki ombor boʻsh",
   },
+  notifications: {
+    title: "Bildirishnomalar",
+    lowTitle: "Kam qolgan mahsulotlar",
+    threshold: (n: number) => `chegara ${n} ta`,
+    stock: (n: number) => `Omborda ${n} ta`,
+    restock: "Omborga qoʻshish",
+    empty: "Hamma mahsulot yetarli. Qoldiq chegaraga tushsa, shu yerda koʻrinadi.",
+    badge: (n: number) => `${n} ta kam qolgan mahsulot`,
+  },
   sheet: {
     date: "Sana",
     customer: "Mijoz",
