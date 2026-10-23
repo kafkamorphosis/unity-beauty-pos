@@ -68,4 +68,31 @@ Phones: open the Vercel URL in Chrome or Safari and use "Add to Home screen". Th
 
 ## Printing
 
-"Chop etish" opens the browser print dialog with the A4 sheet. The Phase 2 Windows app (.exe) will print silently to the selected printer.
+In a browser, "Chop etish" opens the print dialog with the A4 sheet. In the Windows app it prints silently to the chosen printer.
+
+## Windows ilovasi (desktop app)
+
+The `desktop/` folder is a separate Electron app that opens the web app and adds silent A4 printing.
+
+Build the installer (once per version):
+
+```bash
+npm --prefix desktop install
+npm --prefix desktop test
+npm --prefix desktop run dist
+```
+
+The installer is `desktop/dist/UnityBeautyPOS-Setup-<version>.exe`. To bake in your live address, put it in `desktop/config.json` (`{ "url": "https://your-app.vercel.app" }`) before `run dist`; otherwise the app asks for it on first start.
+
+On the shop PC:
+
+1. Run the installer. It isn't code-signed, so Windows SmartScreen may warn: **More info → Run anyway**.
+2. On first start, set the **Ilova manzili** (your Vercel URL) and pick the **Printer**, then press **Sinov chop etish** — a test page should come out with no dialog.
+3. Sign in as usual. "Chop etish" in Kassa, Buyurtmalar and Tekpe now prints straight to the printer.
+4. Change the address or printer any time: menu **Ilova → Printer va manzil sozlamalari** (Ctrl+,). Press Alt to show the menu.
+
+For development: `npm --prefix desktop start -- --url=http://localhost:3000 --dev`.
+
+## Telegram alerts
+
+Admin → Sozlamalar → **Telegram xabarnomalari**: create a bot with @BotFather, paste its token, send `/start` to the bot, press **Chatni topish**, choose the chat, switch alerts on and **Saqlash**, then **Sinov xabarini yuborish**. You'll get a message when a product drops to its "kam qoldi" level and for every new Tekpe order.
