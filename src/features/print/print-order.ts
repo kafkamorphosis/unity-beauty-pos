@@ -1,0 +1,28 @@
+"use client";
+
+declare global {
+  interface Window {
+    unityDesktop?: { print(orderId: string): Promise<void> };
+  }
+}
+
+// Desktop .exe (Phase 2) prints silently; browsers get their print dialog.
+export function printOrder(orderId: string): void {
+  if (window.unityDesktop) {
+    void window.unityDesktop.print(orderId);
+    return;
+  }
+  const url = `/print/${orderId}?autoprint=1`;
+  // Phones and tablets handle printing a hidden frame poorly; give them the sheet in a tab.
+  if (window.matchMedia("(pointer: coarse)").matches) {
+    window.open(url, "_blank", "noopener");
+    return;
+  }
+  const frame = document.createElement("iframe");
+  frame.style.cssText = "position:fixed;right:0;bottom:0;width:0;height:0;border:0;visibility:hidden";
+  frame.src = url;
+  frame.addEventListener("load", () => {
+    frame.contentWindow?.addEventListener("afterprint", () => setTimeout(() => frame.remove(), 500));
+  });
+  document.body.appendChild(frame);
+}
