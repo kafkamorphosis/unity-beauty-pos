@@ -1,0 +1,18 @@
+export const TIME_ZONE = "Asia/Seoul";
+
+const dateTimeFormat = new Intl.DateTimeFormat("en-GB", {
+  timeZone: TIME_ZONE,
+  year: "numeric",
+  month: "2-digit",
+  day: "2-digit",
+  hour: "2-digit",
+  minute: "2-digit",
+  hourCycle: "h23",
+});
+
+export function formatDateTime(iso: string): string {
+  const parts = Object.fromEntries(
+    dateTimeFormat.formatToParts(new Date(iso)).map((p) => [p.type, p.value]),
+  );
+  return `${parts.day}.${parts.month}.${parts.year} ${parts.hour}:${parts.minute}`;
+}
