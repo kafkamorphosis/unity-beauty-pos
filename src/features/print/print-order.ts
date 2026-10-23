@@ -1,5 +1,8 @@
 "use client";
 
+import { toast } from "sonner";
+import { uz } from "@/lib/i18n/uz";
+
 declare global {
   interface Window {
     unityDesktop?: { print(orderId: string): Promise<void> };
@@ -9,7 +12,7 @@ declare global {
 // Desktop .exe (Phase 2) prints silently; browsers get their print dialog.
 export function printOrder(orderId: string): void {
   if (window.unityDesktop) {
-    void window.unityDesktop.print(orderId);
+    window.unityDesktop.print(orderId).catch(() => toast.error(uz.common.printFailed));
     return;
   }
   const url = `/print/${orderId}?autoprint=1`;

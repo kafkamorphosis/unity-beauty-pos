@@ -17,6 +17,7 @@ export const uz = {
     no: "Yoʻq",
     signOut: "Chiqish",
     print: "Chop etish",
+    printFailed: "Chop etib boʻlmadi. Printer va internetni tekshiring (Ilova → Printer va manzil sozlamalari).",
     camera: "Kamera",
   },
   nav: {

@@ -1,0 +1,47 @@
+{
+  "name": "unity-beauty-desktop",
+  "productName": "Unity Beauty",
+  "version": "0.1.0",
+  "description": "Unity Beauty POS — Windows ilovasi (silent A4 printing)",
+  "private": true,
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "test": "node --test",
+    "dist": "electron-builder --win nsis"
+  },
+  "build": {
+    "appId": "uz.unitybeauty.pos",
+    "productName": "Unity Beauty",
+    "files": [
+      "main.js",
+      "preload.js",
+      "shell-preload.js",
+      "lib.js",
+      "settings.html",
+      "offline.html",
+      "config.json"
+    ],
+    "directories": {
+      "output": "dist",
+      "buildResources": "build"
+    },
+    "win": {
+      "target": "nsis",
+      "icon": "build/icon.png"
+    },
+    "nsis": {
+      "oneClick": false,
+      "perMachine": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "Unity Beauty",
+      "artifactName": "UnityBeautyPOS-Setup-${version}.${ext}"
+    }
+  },
+  "devDependencies": {
+    "electron": "44.9.3",
+    "electron-builder": "26.15.3"
+  }
+}
