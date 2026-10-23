@@ -66,7 +66,7 @@ Success means:
 - QR generation: `qrcode`.
 - Desktop: **Electron**, packaged with `electron-builder` into a Windows installer `.exe`.
 - Source on GitHub; the user pushes and Vercel deploys from GitHub.
-- Supabase: a new project `unity-beauty-pos` in region `ap-northeast-2` (Seoul).
+- Supabase: project ref `zeekxqinioeyrjyhuajw`, region `ap-northeast-2` (Seoul).
 
 ## 5. Data model
 
@@ -108,6 +108,9 @@ All money is integer KRW unless the column name says `usd`. All weights are inte
 **app_settings** — single row, editable by admin
 - `kr_shipping_krw int default 4000` (flat per order)
 - `uz_shipping_usd_per_kg numeric default 10`
+
+
+**app_secrets** — single row, admin-only (Phase 2)
 - `telegram_bot_token text null`, `telegram_chat_id text null` (readable only by admin and by security-definer functions)
 
 ### Key database functions (RPC, `security definer`, role-checked)
@@ -141,8 +144,8 @@ Navigation (desktop: left sidebar; phone: bottom bar with "More"):
 Desktop layout: left = cart, right = customer & payment panel.
 
 **Left – cart**
-- A scan field that is always focused. The USB scanner types the barcode and Enter → product is added (or its qty +1 if already in the cart). Unknown barcode → toast "Mahsulot topilmadi" with a shortcut to add it in Ombor.
-- Search bar with live suggestions by name or barcode, for when scanning isn't possible.
+- Scanning works anywhere on the page: a page-wide listener recognises the USB scanner's fast keystroke burst + Enter, even if the cursor is in the phone or name field (the field is left unchanged). The product is added (or its qty +1 if already in the cart). Unknown barcode → toast "Mahsulot topilmadi" with a shortcut to add it in Ombor.
+- Search bar with live suggestions by name or barcode, for when scanning isn't possible. Typing a full barcode and Enter adds it too.
 - Cart rows: photo, name, unit price, **"Optom" toggle** (switches the row to wholesale price), qty with −/+ and tap-to-type, line total, remove.
 - If qty exceeds stock: the row shows a warning ("Omborda 3 ta qoldi"), but the sale is allowed.
 
