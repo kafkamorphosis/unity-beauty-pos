@@ -82,7 +82,8 @@ function RowMenu({ onEdit, onArchive }: { onEdit(): void; onArchive(): void }) {
 export function InventoryScreen() {
   const [products, setProducts] = useState<Product[] | null>(null);
   const [summary, setSummary] = useState<InventorySummary | null>(null);
-  const [query, setQuery] = useState("");
+  const searchParams = useSearchParams();
+  const [query, setQuery] = useState(() => searchParams.get("q") ?? "");
   const [sort, setSort] = useState<Sort>("name");
   const [flow, setFlow] = useState<{ n: number; step: AddStep } | null>(null);
   const [editing, setEditing] = useState<Product | null>(null);
@@ -145,7 +146,7 @@ export function InventoryScreen() {
   // Kassa's "Omborga qoʻshish" shortcut arrives with ?barcode=…: open the add flow for it once.
   const router = useRouter();
   const pathname = usePathname();
-  const pendingBarcode = useSearchParams().get("barcode");
+  const pendingBarcode = searchParams.get("barcode");
   useEffect(() => {
     if (!pendingBarcode) return;
     router.replace(pathname);

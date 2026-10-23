@@ -1,4 +1,4 @@
-import { Boxes, ReceiptText, ScanBarcode, Settings, Truck, Users, type LucideIcon } from "lucide-react";
+import { Boxes, ChartColumn, ReceiptText, ScanBarcode, Settings, Truck, Users, type LucideIcon } from "lucide-react";
 import { uz } from "@/lib/i18n/uz";
 
 export type NavItem = { href: string; label: string; icon: LucideIcon };
@@ -11,6 +11,7 @@ export const NAV: Record<NavKey, NavItem[]> = {
     { href: "/", label: uz.nav.checkout, icon: ScanBarcode },
     { href: "/ombor", label: uz.nav.inventory, icon: Boxes },
     { href: "/buyurtmalar", label: uz.nav.orders, icon: ReceiptText },
+    { href: "/statistika", label: uz.nav.analytics, icon: ChartColumn },
     { href: "/tekpe", label: uz.nav.tekpe, icon: Truck },
   ],
   admin: [
