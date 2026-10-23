@@ -117,10 +117,18 @@ export function InventoryScreen() {
         clearTimeout(timer);
         timer = setTimeout(refresh, 300);
       })
-      .subscribe();
+      // Realtime doesn't replay what was missed while offline or asleep: reload on (re)connect and focus.
+      .subscribe((status) => {
+        if (status === "SUBSCRIBED") refresh();
+      });
+    const onFocus = () => document.visibilityState === "visible" && refresh();
+    window.addEventListener("focus", onFocus);
+    document.addEventListener("visibilitychange", onFocus);
     return () => {
       cancelled = true;
       clearTimeout(timer);
+      window.removeEventListener("focus", onFocus);
+      document.removeEventListener("visibilitychange", onFocus);
       supabaseBrowser().removeChannel(channel);
     };
   }, [refresh]);

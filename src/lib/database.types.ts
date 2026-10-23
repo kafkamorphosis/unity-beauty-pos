@@ -159,7 +159,8 @@ export type Database = {
       };
     };
     Functions: {
-      adjust_stock: { Args: { p_new_stock: number; p_product_id: string }; Returns: ProductRow };
+      adjust_stock: { Args: { p_new_stock: number; p_product_id: string; p_expected_stock?: number }; Returns: ProductRow };
+      change_stock: { Args: { p_delta: number; p_product_id: string }; Returns: ProductRow };
       app_role: { Args: never; Returns: Database["public"]["Enums"]["app_role"] };
       cancel_order: { Args: { p_order_id: string }; Returns: OrderRow };
       create_order: {

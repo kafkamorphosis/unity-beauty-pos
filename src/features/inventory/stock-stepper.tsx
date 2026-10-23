@@ -51,20 +51,42 @@ export function StockStepper({
     if (editing) inputRef.current?.select();
   }, [editing]);
 
-  async function commit(next: number) {
-    const target = Math.max(0, Math.floor(next));
-    if (!Number.isFinite(target) || target === value) return;
+  async function run(call: () => PromiseLike<{ data: { stock: number } | null; error: { message?: string } | null }>, optimistic: number) {
     const previous = value;
-    setValue(target);
+    setValue(optimistic);
     setBusy(true);
-    const { error } = await supabaseBrowser().rpc("adjust_stock", { p_product_id: productId, p_new_stock: target });
-    setBusy(false);
+    const { data, error } = await call();
     if (error) {
       setValue(previous);
       toast.error(errorMessage(error));
-      return;
+      if (error.message === "STOCK_CHANGED") {
+        const { data: fresh } = await supabaseBrowser().from("products").select("stock").eq("id", productId).single();
+        if (fresh) setValue(fresh.stock);
+      }
+    } else if (data) {
+      setValue(data.stock);
+      onChange?.(data.stock);
     }
-    onChange?.(target);
+    setBusy(false);
+  }
+
+  // ±10 is a relative change applied to the current stock on the server, so sales made on other
+  // devices since this screen last refreshed are never overwritten.
+  function step(delta: number) {
+    run(
+      () => supabaseBrowser().rpc("change_stock", { p_product_id: productId, p_delta: delta }),
+      Math.max(value + delta, Math.min(value, 0)),
+    );
+  }
+
+  // A typed exact value carries the stock it replaces; the server refuses if it moved meanwhile.
+  function commit(next: number) {
+    const target = Math.max(0, Math.floor(next));
+    if (!Number.isFinite(target) || target === value) return;
+    run(
+      () => supabaseBrowser().rpc("adjust_stock", { p_product_id: productId, p_new_stock: target, p_expected_stock: value }),
+      target,
+    );
   }
 
   const low = value <= threshold;
@@ -74,8 +96,8 @@ export function StockStepper({
       <div className="flex h-9 items-stretch overflow-hidden rounded-sm border border-ink">
         <button
           type="button"
-          onClick={() => commit(value - STEP)}
-          disabled={busy || value === 0}
+          onClick={() => step(-STEP)}
+          disabled={busy || value <= 0}
           aria-label={`−${STEP}`}
           className="flex w-12 items-center justify-center gap-0.5 border-r border-ink text-xs font-bold hover:bg-paper disabled:opacity-40"
         >
@@ -117,7 +139,7 @@ export function StockStepper({
         )}
         <button
           type="button"
-          onClick={() => commit(value + STEP)}
+          onClick={() => step(STEP)}
           disabled={busy}
           aria-label={`+${STEP}`}
           className="flex w-12 items-center justify-center gap-0.5 border-l border-ink text-xs font-bold hover:bg-paper disabled:opacity-40"

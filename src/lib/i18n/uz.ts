@@ -273,5 +273,6 @@ export const uz = {
     ORDER_ALREADY_CANCELLED: "Bu buyurtma allaqachon bekor qilingan",
     INVALID_STATUS_TRANSITION: "Bu buyurtma holatini oʻzgartirib boʻlmaydi",
     INVALID_STOCK: "Ombordagi miqdor manfiy boʻlishi mumkin emas",
+    STOCK_CHANGED: "Bu orada qoldiq boshqa qurilmada oʻzgardi. Yangi qiymat koʻrsatildi — qayta kiriting.",
   },
 };
