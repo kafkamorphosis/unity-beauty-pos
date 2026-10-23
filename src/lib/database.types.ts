@@ -58,6 +58,13 @@ export type Database = {
         Update: { id?: boolean; kr_shipping_krw?: number; updated_at?: string; uz_shipping_usd_per_kg?: number };
         Relationships: [];
       };
+      // No client grants: only server code with the service key touches this table.
+      app_secrets: {
+        Row: { id: boolean; telegram_bot_token: string | null; telegram_chat_id: string | null; telegram_enabled: boolean; updated_at: string };
+        Insert: never;
+        Update: { telegram_bot_token?: string | null; telegram_chat_id?: string | null; telegram_enabled?: boolean; updated_at?: string };
+        Relationships: [];
+      };
       customers: {
         Row: { created_at: string; id: string; name: string | null; phone: string };
         Insert: { created_at?: string; id?: string; name?: string | null; phone: string };
