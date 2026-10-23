@@ -3,7 +3,9 @@ export type BurstResult = { preventDefault: boolean; burstStart: boolean; scan: 
 const NONE: BurstResult = { preventDefault: false, burstStart: false, scan: null };
 
 // USB barcode scanners "type" a code as a burst of keystrokes a few ms apart, then Enter.
-// Humans can't type that fast, so the gap between keys tells the two apart.
+// Humans rarely type that fast, so the gap between keys tells the two apart.
+// Inside a text field nothing but the scan's Enter is ever blocked: a fast typist's overlapping
+// keys must not vanish. The caller puts the field back the way it was when a scan completes.
 export function createScanBurstDetector(opts: { maxGapMs?: number; minLength?: number } = {}) {
   const maxGapMs = opts.maxGapMs ?? 35;
   const minLength = opts.minLength ?? 4;
@@ -11,14 +13,14 @@ export function createScanBurstDetector(opts: { maxGapMs?: number; minLength?: n
   let lastTime = -Infinity;
 
   return {
-    handleKey(key: string, timeMs: number): BurstResult {
+    handleKey(key: string, timeMs: number, inField = false): BurstResult {
       if (key === "Shift") return NONE;
       if (key.length === 1) {
         const continues = buffer.length > 0 && timeMs - lastTime <= maxGapMs;
         lastTime = timeMs;
         if (continues) {
           buffer += key;
-          return { preventDefault: true, burstStart: false, scan: null };
+          return { preventDefault: !inField, burstStart: false, scan: null };
         }
         buffer = key;
         return { preventDefault: false, burstStart: true, scan: null };

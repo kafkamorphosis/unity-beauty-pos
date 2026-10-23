@@ -4,13 +4,14 @@ import { barcodeCandidates } from "@/lib/domain/barcode";
 
 type SB = SupabaseClient<Database>;
 
-export async function findProductByBarcode(sb: SB, code: string): Promise<Product | null> {
-  const { data, error } = await sb
-    .from("products")
-    .select("*")
-    .in("barcode", barcodeCandidates(code))
-    .eq("is_archived", false)
-    .limit(1);
+export async function findProductByBarcode(
+  sb: SB,
+  code: string,
+  opts: { includeArchived?: boolean } = {},
+): Promise<Product | null> {
+  let q = sb.from("products").select("*").in("barcode", barcodeCandidates(code));
+  if (!opts.includeArchived) q = q.eq("is_archived", false);
+  const { data, error } = await q.limit(1);
   if (error) throw error;
   return data[0] ?? null;
 }

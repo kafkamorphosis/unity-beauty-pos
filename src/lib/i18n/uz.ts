@@ -110,6 +110,11 @@ export const uz = {
     sort: "Saralash",
     requiredField: "Toʻldirish shart",
     photoFailed: "Rasm yuklanmadi, mahsulot rasmsiz saqlandi",
+    archivedTitle: "Bu mahsulot arxivlangan",
+    archivedHint: "U kassada va omborda koʻrinmaydi. Qayta tiklasangiz, omborga miqdor qoʻsha olasiz.",
+    restore: "Qayta tiklash",
+    restored: "Mahsulot qayta tiklandi",
+    scanIgnored: "Avval ushbu mahsulotni saqlang yoki bekor qiling, keyin keyingisini skanerlang",
   },
   checkout: {
     title: "Kassa",

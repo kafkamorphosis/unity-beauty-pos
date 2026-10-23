@@ -28,7 +28,7 @@ export function useHidScanner(onScan: (code: string) => void, opts: { enabled?: 
 
     const handler = (e: KeyboardEvent) => {
       if (e.ctrlKey || e.metaKey || e.altKey) return;
-      const r = detector.handleKey(e.key, e.timeStamp);
+      const r = detector.handleKey(e.key, e.timeStamp, isField(e.target));
       if (r.burstStart) origin = isField(e.target) ? { el: e.target, value: e.target.value } : null;
       if (r.preventDefault) {
         e.preventDefault();

@@ -115,7 +115,12 @@ export function CheckoutScreen() {
     }
   }
 
-  useHidScanner(addByBarcode, { enabled: !dialogOpen });
+  // Always listening, so a scan never types into a dialog field or presses its focused button.
+  // Over the success dialog a scan starts the next order; in the Tekpe dialog it adds to the cart.
+  useHidScanner((code) => {
+    if (success) newOrder();
+    addByBarcode(code);
+  });
 
   async function submit(attempt: Attempt) {
     if (empty || busy) return;

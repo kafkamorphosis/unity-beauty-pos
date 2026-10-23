@@ -32,3 +32,17 @@ describe("createScanBurstDetector", () => {
     expect(typeAll(d, ["1", "2", "Shift", "3", "4", "Enter"], 10).at(-1)!.scan).toBe("1234");
   });
 });
+
+describe("inside a text field", () => {
+  it("never blocks fast human keystrokes (overlapping keys, auto-repeat)", () => {
+    const d = createScanBurstDetector();
+    const inField = [..."abc"].map((k, i) => d.handleKey(k, i * 20, true));
+    expect(inField.every((r) => !r.preventDefault)).toBe(true);
+  });
+  it("still recognises a scan and blocks only its Enter", () => {
+    const d = createScanBurstDetector();
+    const keys = [..."8801234567890"].map((k, i) => d.handleKey(k, i * 10, true));
+    expect(keys.every((r) => !r.preventDefault)).toBe(true);
+    expect(d.handleKey("Enter", 140, true)).toEqual({ preventDefault: true, burstStart: false, scan: "8801234567890" });
+  });
+});

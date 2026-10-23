@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Archive, MoreHorizontal, Pencil, Plus, Search } from "lucide-react";
 import { toast } from "sonner";
+import { useHidScanner } from "@/components/scanner/use-hid-scanner";
 import { Krw, Weight } from "@/components/money";
 import { ProductThumb } from "@/components/product-thumb";
 import { PageHeader } from "@/components/shell/page-header";
@@ -27,7 +28,7 @@ import { errorMessage } from "@/lib/domain/errors";
 import { supabaseBrowser } from "@/lib/supabase/client";
 import { uz } from "@/lib/i18n/uz";
 import { cn } from "@/lib/utils";
-import { AddProductFlow } from "./add-product-flow";
+import { AddProductFlow, lookupStep, type AddStep } from "./add-product-flow";
 import { ProductForm } from "./product-form";
 import { StockStepper } from "./stock-stepper";
 
@@ -82,7 +83,7 @@ export function InventoryScreen() {
   const [summary, setSummary] = useState<InventorySummary | null>(null);
   const [query, setQuery] = useState("");
   const [sort, setSort] = useState<Sort>("name");
-  const [adding, setAdding] = useState(false);
+  const [flow, setFlow] = useState<{ n: number; step: AddStep } | null>(null);
   const [editing, setEditing] = useState<Product | null>(null);
   const [archiving, setArchiving] = useState<Product | null>(null);
 
@@ -140,6 +141,16 @@ export function InventoryScreen() {
     return [...filtered].sort((a, b) => (sort === "stock" ? a.stock - b.stock : a.name.localeCompare(b.name, "uz")));
   }, [products, query, sort]);
 
+  // A scan on the page opens the add flow at the right step instead of typing into the search box.
+  useHidScanner(
+    (code) => {
+      lookupStep(code)
+        .then((step) => setFlow({ n: Date.now(), step }))
+        .catch((e) => toast.error(errorMessage(e)));
+    },
+    { enabled: flow === null && editing === null && archiving === null },
+  );
+
   async function archive(p: Product) {
     const { error } = await supabaseBrowser().from("products").update({ is_archived: true }).eq("id", p.id);
     if (error) return toast.error(errorMessage(error));
@@ -150,7 +161,7 @@ export function InventoryScreen() {
   return (
     <>
       <PageHeader title={uz.inventory.title}>
-        <Button onClick={() => setAdding(true)} size="lg">
+        <Button onClick={() => setFlow({ n: Date.now(), step: { kind: "scan" } })} size="lg">
           <Plus aria-hidden />
           {uz.inventory.add}
         </Button>
@@ -278,7 +289,9 @@ export function InventoryScreen() {
         )}
       </div>
 
-      <AddProductFlow open={adding} onOpenChange={setAdding} onSaved={refresh} />
+      {flow && (
+        <AddProductFlow key={flow.n} open initialStep={flow.step} onOpenChange={(o) => !o && setFlow(null)} onSaved={refresh} />
+      )}
 
       <Dialog open={editing !== null} onOpenChange={(o) => !o && setEditing(null)}>
         <DialogContent className="gap-0 overflow-hidden border border-ink p-0 max-sm:max-h-dvh max-sm:overflow-y-auto sm:max-w-xl">
