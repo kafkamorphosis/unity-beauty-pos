@@ -17,6 +17,7 @@ import { getShippingRates } from "@/lib/data/settings";
 import type { CartProduct } from "@/lib/domain/cart";
 import { errorMessage } from "@/lib/domain/errors";
 import { formatKrw } from "@/lib/domain/money";
+import { formatOrderNo } from "@/lib/domain/order-no";
 import { normalizePhone } from "@/lib/domain/phone";
 import type { ShippingRates } from "@/lib/domain/shipping";
 import type { Destination } from "@/lib/domain/types";
@@ -27,6 +28,7 @@ import { CustomerPanel, type CustomerState } from "./customer-panel";
 import { ProductSearch } from "./product-search";
 import { SuccessDialog } from "./success-dialog";
 import { TekpeDialog } from "./tekpe-dialog";
+import { cartFingerprint, resolveRequest, type Payload } from "./request-key";
 import { useCart } from "./use-cart";
 
 const EMPTY_CUSTOMER: CustomerState = { country: "KR", phone: "", name: "", payment: "cash" };
@@ -51,7 +53,7 @@ function isNetworkError(e: { code?: string; message?: string }): boolean {
 }
 
 export function CheckoutScreen() {
-  const { lines, dispatch, totals, requestId, finishOrder } = useCart();
+  const { lines, dispatch, totals, loadRequest, saveRequest, finishOrder } = useCart();
   const online = useOnline();
   const router = useRouter();
   const searchRef = useRef<HTMLInputElement>(null);
@@ -130,14 +132,53 @@ export function CheckoutScreen() {
     }
     setBusy(true);
     setFailed(null);
-    const { data, error } = await supabaseBrowser().rpc("create_order", {
-      p_request_id: requestId(),
-      p_items: lines.map((l) => ({ product_id: l.id, qty: l.qty, is_wholesale: l.isWholesale })),
-      p_customer_phone: phone,
-      p_customer_name: customerState.name.trim() || null,
-      p_payment_method: customerState.payment,
-      p_type: attempt.type,
-      p_destination: attempt.type === "tekpe" ? attempt.destination : null,
+    const sb = supabaseBrowser();
+    const payload: Payload = {
+      items: lines.map((l) => ({ product_id: l.id, qty: l.qty, is_wholesale: l.isWholesale })),
+      type: attempt.type,
+      destination: attempt.type === "tekpe" ? attempt.destination : null,
+      phone,
+      name: customerState.name.trim() || null,
+      payment: customerState.payment,
+    };
+    const fp = cartFingerprint(payload);
+    let decision;
+    try {
+      decision = await resolveRequest(
+        loadRequest(),
+        fp,
+        async (requestId) => {
+          const { data, error } = await sb.from("orders").select("*").eq("request_id", requestId).maybeSingle();
+          if (error) throw error;
+          return data;
+        },
+        () => crypto.randomUUID(),
+      );
+    } catch (e) {
+      setBusy(false);
+      if (isNetworkError(e as { code?: string; message?: string })) setFailed(attempt);
+      else toast.error(errorMessage(e));
+      return;
+    }
+    if (decision.kind === "placed") {
+      // The earlier attempt did go through. Show it, and keep the edited cart so nothing is lost.
+      saveRequest(null);
+      setBusy(false);
+      setTekpeOpen(false);
+      setSheetOpen(false);
+      setSuccess(decision.order);
+      toast.warning(uz.checkout.earlierPlaced(formatOrderNo(decision.order.order_no)), { duration: 12_000 });
+      return;
+    }
+    saveRequest({ id: decision.id, fp });
+    const { data, error } = await sb.rpc("create_order", {
+      p_request_id: decision.id,
+      p_items: payload.items,
+      p_customer_phone: payload.phone,
+      p_customer_name: payload.name,
+      p_payment_method: payload.payment,
+      p_type: payload.type,
+      p_destination: payload.destination,
     });
     setBusy(false);
     if (error) {

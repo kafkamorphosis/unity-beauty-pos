@@ -149,6 +149,7 @@ export const uz = {
     newOrder: "Yangi buyurtma",
     networkError: "Aloqa uzildi. Buyurtma saqlanmagan boʻlishi mumkin.",
     lines: (n: number) => `${n} xil`,
+    earlierPlaced: (no: string) => `Oldingi urinish saqlangan edi: ${no}. Savatdagi oʻzgarishlar unga kirmadi — savatni tekshirib, qayta yuboring.`,
   },
   orders: {
     title: "Buyurtmalar",
