@@ -10,6 +10,7 @@ import { searchProducts } from "@/lib/data/products";
 import { supabaseBrowser } from "@/lib/supabase/client";
 import { uz } from "@/lib/i18n/uz";
 import { cn } from "@/lib/utils";
+import { resolveEnter } from "./search-enter";
 
 export const ProductSearch = forwardRef<
   HTMLInputElement,
@@ -18,6 +19,8 @@ export const ProductSearch = forwardRef<
   const listId = useId();
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<Product[]>([]);
+  const [resultsFor, setResultsFor] = useState("");
+  const [navigated, setNavigated] = useState(false);
   const [active, setActive] = useState(0);
   const [open, setOpen] = useState(false);
 
@@ -29,6 +32,8 @@ export const ProductSearch = forwardRef<
       const found = await searchProducts(supabaseBrowser(), q).catch(() => []);
       if (cancelled) return;
       setResults(found);
+      setResultsFor(q);
+      setNavigated(false);
       setActive(0);
       setOpen(true);
     }, 200);
@@ -52,21 +57,20 @@ export const ProductSearch = forwardRef<
   function onKeyDown(e: React.KeyboardEvent<HTMLInputElement>) {
     if (e.key === "ArrowDown") {
       e.preventDefault();
+      setNavigated(true);
       setActive((i) => Math.min(i + 1, results.length - 1));
     } else if (e.key === "ArrowUp") {
       e.preventDefault();
+      setNavigated(true);
       setActive((i) => Math.max(i - 1, 0));
     } else if (e.key === "Escape") {
       reset();
     } else if (e.key === "Enter") {
       e.preventDefault();
-      const q = query.trim();
-      const exact = results.find((p) => p.barcode === q);
-      if (exact) return pick(exact);
-      if (open && results[active]) return pick(results[active]);
-      // A typed full barcode with no suggestion yet: look it up directly.
-      if (/^\d{6,}$/.test(q)) {
-        onBarcode(q);
+      const d = resolveEnter({ query, resultsFor, results, active, navigated });
+      if (d.kind === "pick") pick(d.product);
+      else if (d.kind === "barcode") {
+        onBarcode(d.code);
         reset();
       }
     }
