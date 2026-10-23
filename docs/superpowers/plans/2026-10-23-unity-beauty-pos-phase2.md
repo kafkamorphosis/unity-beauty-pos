@@ -34,9 +34,8 @@ All Phase 1 Global Constraints still apply (Uzbek Latin copy in `src/lib/i18n/uz
 ## File Structure
 
 ```
-supabase/migrations/20261023000006_phase1_followups.sql       (setRole sync helper not needed; see Task 1)
 supabase/migrations/20261023000007_analytics.sql
-supabase/migrations/20261023000008_notifications.sql
+supabase/migrations/20261023000008_low_stock_view.sql, 20261023000009_telegram.sql
 supabase/tests/05_analytics.sql, 06_notifications.sql
 src/lib/domain/period.ts (+ test)
 src/lib/data/analytics.ts, notifications.ts
@@ -139,7 +138,7 @@ scripts/prepare-logos.mjs (adds desktop/build/icon.png)
 
 ### Task 4: Bildirishnomalar (low stock) screen and nav badge
 
-**Files:** `supabase/migrations/20261023000008_notifications.sql` (view part), `src/lib/data/notifications.ts`, `src/features/notifications/*`, `src/app/(pos)/bildirishnomalar/page.tsx`, `src/components/shell/app-shell.tsx`, `nav-items.ts`, `uz.ts`
+**Files:** `supabase/migrations/20261023000008_low_stock_view.sql`, `src/lib/data/notifications.ts`, `src/features/notifications/*`, `src/app/(pos)/bildirishnomalar/page.tsx`, `src/components/shell/app-shell.tsx`, `nav-items.ts`, `uz.ts`
 
 **Interfaces:**
 - Produces: view `public.low_stock_products` (`security_invoker`) = non-archived products with `stock <= low_stock_threshold`; `listLowStock(sb)` ordered by `stock - low_stock_threshold` asc then name; `useLowStockCount(): number | null` (count query + realtime on `products` + focus refresh); nav item Bildirishnomalar `/bildirishnomalar` (icon `Bell`) with a count badge (ink pill; hidden at 0).
@@ -154,7 +153,7 @@ scripts/prepare-logos.mjs (adds desktop/build/icon.png)
 
 ### Task 5: Telegram alerts
 
-**Files:** `supabase/migrations/20261023000008_notifications.sql` (rest), `supabase/tests/06_notifications.sql`, `src/features/admin/telegram-form.tsx`, `src/features/admin/actions.ts`, `src/app/admin/sozlamalar/page.tsx`, `uz.ts`
+**Files:** `supabase/migrations/20261023000009_telegram.sql`, `supabase/tests/06_notifications.sql`, `src/features/admin/telegram-form.tsx`, `src/features/admin/actions.ts`, `src/app/admin/sozlamalar/page.tsx`, `uz.ts`
 
 **Interfaces:**
 - Produces:
