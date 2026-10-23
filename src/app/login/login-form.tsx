@@ -21,10 +21,19 @@ export function LoginForm() {
     const password = String(form.get("password") ?? "");
     setPending(true);
     setError(null);
-    const { error } = await supabaseBrowser().auth.signInWithPassword({ email: usernameToEmail(username), password });
+    const sb = supabaseBrowser();
+    const { data, error } = await sb.auth.signInWithPassword({ email: usernameToEmail(username), password });
     if (error) {
       setPending(false);
       setError(error.code === "user_banned" ? uz.login.disabled : uz.login.invalid);
+      return;
+    }
+    // Correct password but no active profile: say so instead of bouncing back to this page.
+    const { data: profile } = await sb.from("profiles").select("is_active").eq("id", data.user.id).maybeSingle();
+    if (!profile?.is_active) {
+      await sb.auth.signOut();
+      setPending(false);
+      setError(uz.login.disabled);
       return;
     }
     router.replace("/");

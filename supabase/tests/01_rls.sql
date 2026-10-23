@@ -57,3 +57,20 @@ begin
   assert v_active = false, 'self-signup profile is inactive';
   assert v_role = 'seller', 'self-signup role is not taken from user metadata';
 end $$;
+
+-- the admin API writes app_metadata.role after the insert; the role must still apply
+do $$
+declare v_id uuid := gen_random_uuid(); v_active boolean; v_role public.app_role;
+begin
+  insert into auth.users (id, instance_id, aud, role, email, raw_user_meta_data, raw_app_meta_data, created_at, updated_at)
+  values (v_id, '00000000-0000-0000-0000-000000000000', 'authenticated', 'authenticated', 'late@unitybeauty.local',
+          jsonb_build_object('username', 'late'), jsonb_build_object('provider', 'email'), now(), now());
+  update auth.users set raw_app_meta_data = raw_app_meta_data || jsonb_build_object('role', 'admin') where id = v_id;
+  select is_active, role into v_active, v_role from public.profiles where id = v_id;
+  assert v_role = 'admin', 'role set by admin API after insert is applied';
+  assert v_active, 'profile becomes active once a role is granted';
+  update public.profiles set is_active = false where id = v_id;
+  update auth.users set raw_app_meta_data = raw_app_meta_data || jsonb_build_object('providers', jsonb_build_array('email')) where id = v_id;
+  select is_active into v_active from public.profiles where id = v_id;
+  assert not v_active, 'unrelated metadata updates keep a disabled user disabled';
+end $$;
