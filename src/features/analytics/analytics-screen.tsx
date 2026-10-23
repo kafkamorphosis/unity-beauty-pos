@@ -8,7 +8,6 @@ import { PageHeader } from "@/components/shell/page-header";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { getLeastSold, getReport, type LeastSoldRow, type Report } from "@/lib/data/analytics";
-import { listSellers } from "@/lib/data/orders";
 import { errorMessage } from "@/lib/domain/errors";
 import { periodLabel, periodRange, seoulToday, shiftPeriod, type PeriodKind } from "@/lib/domain/period";
 import { supabaseBrowser } from "@/lib/supabase/client";
@@ -17,6 +16,7 @@ import { cn } from "@/lib/utils";
 import { KpiStrip } from "./kpi-strip";
 import { ProductTable } from "./product-table";
 import { BestSellers, LeastSold } from "./ranking-lists";
+import { resolveScope, ScopeSelect } from "./scope-select";
 
 const KINDS: PeriodKind[] = ["day", "week", "month", "year"];
 
@@ -27,21 +27,13 @@ export function AnalyticsScreen({ isOwner, meId }: { isOwner: boolean; meId: str
   const today = seoulToday();
   const kind = (KINDS.includes(sp.get("p") as PeriodKind) ? sp.get("p") : "day") as PeriodKind;
   const anchor = /^\d{4}-\d{2}-\d{2}$/.test(sp.get("d") ?? "") ? sp.get("d")! : today;
-  // Owner: "" = everyone, "me" = own, otherwise a seller id. Sellers are always scoped to themselves
-  // by the database; the value sent is irrelevant for them.
-  const scopeParam = isOwner ? (sp.get("s") ?? "") : "me";
-  const sellerId = scopeParam === "" ? null : scopeParam === "me" ? meId : scopeParam;
+  const { scope: scopeParam, sellerId } = resolveScope(isOwner, meId, sp.get("s"));
 
   const range = periodRange(kind, anchor);
   const key = `${range.from}|${range.to}|${sellerId}`;
   const [report, setReport] = useState<{ key: string; data: Report } | null>(null);
   const [leastDays, setLeastDays] = useState<14 | 30>(14);
   const [least, setLeast] = useState<{ key: string; rows: LeastSoldRow[] } | null>(null);
-  const [sellers, setSellers] = useState<{ id: string; full_name: string; username: string }[]>([]);
-
-  useEffect(() => {
-    if (isOwner) listSellers(supabaseBrowser()).then(setSellers).catch(() => {});
-  }, [isOwner]);
 
   useEffect(() => {
     let cancelled = false;
@@ -79,28 +71,7 @@ export function AnalyticsScreen({ isOwner, meId }: { isOwner: boolean; meId: str
   return (
     <>
       <PageHeader title={uz.analytics.title}>
-        {isOwner ? (
-          <label className="flex items-center gap-2 text-sm text-ink-2">
-            {uz.analytics.scope}
-            <select
-              value={scopeParam}
-              onChange={(e) => go({ s: e.target.value || undefined })}
-              className="h-10 rounded-sm border border-input bg-cell px-2 text-sm font-semibold text-ink"
-            >
-              <option value="">{uz.analytics.all}</option>
-              <option value="me">{uz.analytics.mine}</option>
-              {sellers
-                .filter((s) => s.id !== meId)
-                .map((s) => (
-                  <option key={s.id} value={s.id}>
-                    {s.full_name || s.username}
-                  </option>
-                ))}
-            </select>
-          </label>
-        ) : (
-          <span className="caption">{uz.analytics.mineCaption}</span>
-        )}
+        <ScopeSelect isOwner={isOwner} meId={meId} value={scopeParam} onChange={(v) => go({ s: v || undefined })} />
       </PageHeader>
 
       <div className="waybill mb-4 flex flex-wrap items-stretch">

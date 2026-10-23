@@ -176,6 +176,25 @@ export type Database = {
         Returns: { product_id: string; name: string; photo_path: string | null; stock: number; qty_sold: number }[];
       };
       cancel_order: { Args: { p_order_id: string }; Returns: OrderRow };
+      customer_stats: {
+        Args: { p_seller?: string | null; p_customer?: string | null };
+        Returns: {
+          id: string;
+          phone: string;
+          name: string | null;
+          created_at: string;
+          orders: number;
+          items: number;
+          spent: number;
+          shipping_usd: number;
+          tekpe_orders: number;
+          last_order_at: string | null;
+        }[];
+      };
+      rename_customer: {
+        Args: { p_customer: string; p_name: string };
+        Returns: Database["public"]["Tables"]["customers"]["Row"];
+      };
       create_order: {
         Args: {
           p_customer_name: string | null;

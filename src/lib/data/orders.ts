@@ -44,6 +44,7 @@ export type OrderFilters = {
   status?: OrderStatus;
   type?: OrderType;
   sellerId?: string;
+  customerId?: string;
   from?: string; // YYYY-MM-DD, Seoul
   to?: string; // YYYY-MM-DD, Seoul, inclusive
   q?: string;
@@ -62,6 +63,7 @@ export async function listOrders(sb: SB, f: OrderFilters, pageSize = 50): Promis
   if (f.status) q = q.eq("status", f.status);
   if (f.type) q = q.eq("type", f.type);
   if (f.sellerId) q = q.eq("seller_id", f.sellerId);
+  if (f.customerId) q = q.eq("customer_id", f.customerId);
   if (f.from) q = q.gte("created_at", seoulDayStart(f.from));
   if (f.to) q = q.lt("created_at", seoulDayEndExclusive(f.to));
   if (search?.kind === "orderNo") q = q.eq("order_no", search.value);
