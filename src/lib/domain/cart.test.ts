@@ -1,0 +1,54 @@
+import { describe, expect, it } from "vitest";
+import { cartReducer, cartTotals, isOverStock, unitPrice, type CartLine, type CartProduct } from "./cart";
+
+const A: CartProduct = { id: "a", barcode: "1", name: "A", photoPath: null, retailPrice: 10000, wholesalePrice: 8000, weightG: 250, stock: 5 };
+const B: CartProduct = { id: "b", barcode: "2", name: "B", photoPath: null, retailPrice: 20000, wholesalePrice: 15000, weightG: 500, stock: 1 };
+
+function build(): CartLine[] {
+  let s: CartLine[] = [];
+  s = cartReducer(s, { type: "add", product: A });
+  s = cartReducer(s, { type: "add", product: A });
+  s = cartReducer(s, { type: "add", product: B });
+  s = cartReducer(s, { type: "setQty", id: "b", qty: 3 });
+  s = cartReducer(s, { type: "toggleWholesale", id: "b" });
+  return s;
+}
+
+describe("cartReducer", () => {
+  it("adding the same product twice increments qty on one line", () => {
+    let s = cartReducer([], { type: "add", product: A });
+    s = cartReducer(s, { type: "add", product: A });
+    expect(s).toHaveLength(1);
+    expect(s[0].qty).toBe(2);
+  });
+  it("setQty 0 removes the line, setQty 7 sets it", () => {
+    const s = cartReducer([], { type: "add", product: A });
+    expect(cartReducer(s, { type: "setQty", id: "a", qty: 0 })).toHaveLength(0);
+    expect(cartReducer(s, { type: "setQty", id: "a", qty: 7 })[0].qty).toBe(7);
+  });
+  it("dec at qty 1 keeps qty 1", () => {
+    const s = cartReducer([], { type: "add", product: A });
+    expect(cartReducer(s, { type: "dec", id: "a" })[0].qty).toBe(1);
+  });
+  it("inc, remove and clear", () => {
+    const s = cartReducer([], { type: "add", product: A });
+    expect(cartReducer(s, { type: "inc", id: "a" })[0].qty).toBe(2);
+    expect(cartReducer(s, { type: "remove", id: "a" })).toHaveLength(0);
+    expect(cartReducer(build(), { type: "clear" })).toHaveLength(0);
+  });
+  it("toggleWholesale switches unit price", () => {
+    const b = build().find((l) => l.id === "b")!;
+    expect(unitPrice(b)).toBe(15000);
+  });
+});
+
+describe("cartTotals / isOverStock", () => {
+  it("sums lines with wholesale prices applied", () => {
+    expect(cartTotals(build())).toEqual({ lineCount: 2, itemCount: 5, totalWeightG: 2000, subtotal: 65000 });
+  });
+  it("flags qty above stock", () => {
+    const [a, b] = build();
+    expect(isOverStock(b)).toBe(true);
+    expect(isOverStock(a)).toBe(false);
+  });
+});

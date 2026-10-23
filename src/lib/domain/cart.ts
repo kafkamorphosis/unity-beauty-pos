@@ -1,0 +1,71 @@
+export type CartProduct = {
+  id: string;
+  barcode: string;
+  name: string;
+  photoPath: string | null;
+  retailPrice: number;
+  wholesalePrice: number;
+  weightG: number;
+  stock: number;
+};
+
+export type CartLine = CartProduct & { qty: number; isWholesale: boolean };
+
+export type CartAction =
+  | { type: "add"; product: CartProduct }
+  | { type: "setQty"; id: string; qty: number }
+  | { type: "inc"; id: string }
+  | { type: "dec"; id: string }
+  | { type: "toggleWholesale"; id: string }
+  | { type: "remove"; id: string }
+  | { type: "clear" };
+
+function update(lines: CartLine[], id: string, fn: (l: CartLine) => CartLine): CartLine[] {
+  return lines.map((l) => (l.id === id ? fn(l) : l));
+}
+
+export function cartReducer(lines: CartLine[], a: CartAction): CartLine[] {
+  switch (a.type) {
+    case "add": {
+      const existing = lines.find((l) => l.id === a.product.id);
+      // Refresh product data (price/stock may have changed) while bumping qty.
+      if (existing) return update(lines, a.product.id, (l) => ({ ...l, ...a.product, qty: l.qty + 1 }));
+      return [...lines, { ...a.product, qty: 1, isWholesale: false }];
+    }
+    case "setQty": {
+      const qty = Math.floor(a.qty);
+      if (!Number.isFinite(qty) || qty < 1) return lines.filter((l) => l.id !== a.id);
+      return update(lines, a.id, (l) => ({ ...l, qty }));
+    }
+    case "inc":
+      return update(lines, a.id, (l) => ({ ...l, qty: l.qty + 1 }));
+    case "dec":
+      return update(lines, a.id, (l) => ({ ...l, qty: Math.max(1, l.qty - 1) }));
+    case "toggleWholesale":
+      return update(lines, a.id, (l) => ({ ...l, isWholesale: !l.isWholesale }));
+    case "remove":
+      return lines.filter((l) => l.id !== a.id);
+    case "clear":
+      return [];
+  }
+}
+
+export function unitPrice(l: CartLine): number {
+  return l.isWholesale ? l.wholesalePrice : l.retailPrice;
+}
+
+export function isOverStock(l: CartLine): boolean {
+  return l.qty > l.stock;
+}
+
+export function cartTotals(lines: CartLine[]) {
+  return lines.reduce(
+    (t, l) => ({
+      lineCount: t.lineCount + 1,
+      itemCount: t.itemCount + l.qty,
+      totalWeightG: t.totalWeightG + l.weightG * l.qty,
+      subtotal: t.subtotal + unitPrice(l) * l.qty,
+    }),
+    { lineCount: 0, itemCount: 0, totalWeightG: 0, subtotal: 0 },
+  );
+}
