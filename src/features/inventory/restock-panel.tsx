@@ -63,7 +63,7 @@ export function RestockPanel({ product, onDone, onCancel }: { product: Product; 
             aria-label={uz.inventory.quantity}
             onChange={(e) => setQty(Number(e.target.value.replace(/\D/g, "") || 0))}
             onFocus={(e) => e.currentTarget.select()}
-            className="monument min-w-0 flex-1 text-center text-3xl outline-none focus:bg-blush-soft"
+            className="monument min-w-0 flex-1 text-center text-3xl outline-none focus:bg-sand-soft"
           />
           <button
             type="button"

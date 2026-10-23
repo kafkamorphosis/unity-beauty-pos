@@ -122,7 +122,7 @@ export const ProductSearch = forwardRef<
                 onMouseEnter={() => setActive(i)}
                 className={cn(
                   "flex cursor-pointer items-center gap-3 border-b border-rule-soft px-3 py-2 last:border-0",
-                  i === active && "bg-blush-soft",
+                  i === active && "bg-sand-soft",
                 )}
               >
                 <ProductThumb path={p.photo_path} size={36} />

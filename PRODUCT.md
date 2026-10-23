@@ -35,7 +35,7 @@ Built for one business's exact counter ritual — USB scanner, wholesale ("optom
 
 ## Brand Commitments
 
-- Platform is in Unity Beauty's name. Page background `#fcf2f0`, primary buttons `#f8ad9d` (pinned by the client).
+- Platform is in Unity Beauty's name. Page background light gray `#f2f2f0`, primary buttons sand beige `#e8d9c4` with dark text (client changed this on 2026-10-23: the original `#fcf2f0` / `#f8ad9d` pink read as too girly).
 - Logos: `Unity.png` (Unity Beauty) and `Nura.png` (Nura skin, a collaborating brand). Both appear together only on the printed sheet; the app itself carries Unity only.
 - Must not feel cute or girly: no pink overload or decorative fluff that hurts readability.
 
@@ -49,7 +49,7 @@ Built for one business's exact counter ritual — USB scanner, wholesale ("optom
 1. Speed at the counter beats everything: fewest taps, scanner always ready, the primary action obvious.
 2. Numbers are the interface: prices, quantities, totals and stock must be instantly readable at a glance.
 3. Never lose stock or a parcel: every change is recorded, and destructive actions confirm.
-4. Calm, professional, quietly branded — the client's pink is an accent of identity, not a coat of paint.
+4. Calm, professional, quietly branded — neutral gray ground, beige reserved for actions; the pink lives only in the Unity logo.
 
 ## Accessibility & Inclusion
 

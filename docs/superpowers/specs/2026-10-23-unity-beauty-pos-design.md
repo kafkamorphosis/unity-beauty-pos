@@ -245,7 +245,7 @@ Route `/print/[orderId]` (login required), styled for A4 portrait, black-and-whi
 
 ## 10. Design direction
 
-- Background `#fcf2f0`, primary buttons `#f8ad9d`. Button text is a dark warm tone (not white) because white on `#f8ad9d` fails contrast.
+- Background light gray `#f2f2f0`, primary buttons sand beige `#e8d9c4` with dark text. (Changed 2026-10-23 from `#fcf2f0` / `#f8ad9d`: the client found the pink too girly.)
 - Built for speed at the counter: large touch targets, the scan field always ready, the Checkout button the clearest thing on the screen, keyboard shortcuts on desktop (e.g. F2 search, F9 checkout).
 - Responsive: desktop two-panel layout; phone single column with bottom navigation.
 - Visual design is done during the build with the `/impeccable` and `/web-design-guidelines` skills.

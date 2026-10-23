@@ -28,7 +28,7 @@ function QtyControl({ line, dispatch }: { line: CartLine; dispatch(a: CartAction
           const qty = Number(e.target.value.replace(/\D/g, ""));
           if (qty > 0) dispatch({ type: "setQty", id: line.id, qty });
         }}
-        className="num min-w-0 flex-1 text-center text-base font-bold outline-none focus:bg-blush-soft"
+        className="num min-w-0 flex-1 text-center text-base font-bold outline-none focus:bg-sand-soft"
       />
       <button
         type="button"
@@ -73,7 +73,7 @@ export function CartRow({
   const price = unitPrice(line);
 
   return (
-    <li className={cn("border-b border-rule-soft", fresh && "animate-feed bg-blush-soft/50")}>
+    <li className={cn("border-b border-rule-soft", fresh && "animate-feed bg-sand-soft/50")}>
       {/* Desktop row */}
       <div className="hidden grid-cols-[2rem_2.75rem_minmax(0,1fr)_7rem_5rem_8rem_7.5rem_2.5rem] items-center gap-3 px-3 py-2 xl:grid">
         <span className="num text-sm text-ink-3">{index + 1}</span>

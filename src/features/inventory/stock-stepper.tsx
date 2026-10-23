@@ -100,7 +100,7 @@ export function StockStepper({
                 setEditing(false);
               }
             }}
-            className="num min-w-0 flex-1 bg-blush-soft text-center text-base font-bold outline-none"
+            className="num min-w-0 flex-1 bg-sand-soft text-center text-base font-bold outline-none"
           />
         ) : (
           <button

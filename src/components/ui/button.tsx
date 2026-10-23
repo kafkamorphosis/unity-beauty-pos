@@ -8,7 +8,7 @@ const buttonVariants = cva(
   {
     variants: {
       variant: {
-        default: "border-ink bg-blush text-blush-ink hover:bg-[color-mix(in_oklch,var(--blush),var(--ink)_8%)]",
+        default: "border-ink bg-sand text-sand-ink hover:bg-[color-mix(in_oklch,var(--sand),var(--ink)_8%)]",
         outline: "border-ink bg-cell text-ink hover:bg-paper aria-expanded:bg-paper",
         secondary: "border-rule-soft bg-paper text-ink hover:border-ink",
         ghost: "border-transparent text-ink hover:bg-muted aria-expanded:bg-muted",

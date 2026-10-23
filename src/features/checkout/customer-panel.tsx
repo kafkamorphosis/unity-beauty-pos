@@ -125,7 +125,7 @@ export function CustomerPanel({
         <Button size="xl" className="w-full text-xl" onClick={onCheckout} disabled={disabled || busy}>
           {busy && <Loader2 className="animate-spin" aria-hidden />}
           {uz.checkout.checkout}
-          <kbd className="ml-auto hidden rounded-sm border border-blush-ink/30 px-1.5 text-xs font-semibold lg:inline">F9</kbd>
+          <kbd className="ml-auto hidden rounded-sm border border-sand-ink/30 px-1.5 text-xs font-semibold lg:inline">F9</kbd>
         </Button>
         <Button size="lg" variant="outline" className="w-full" onClick={onTekpe} disabled={disabled || busy}>
           <Truck aria-hidden />

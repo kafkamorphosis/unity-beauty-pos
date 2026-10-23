@@ -2,7 +2,7 @@
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
 
-/* Taekbae Waybill: thermal-label cells ruled in ink on the client's blush ground.
+/* Taekbae Waybill: thermal-label cells ruled in ink on a light gray counter ground.
    Light only: the app lives under bright store-counter lighting. */
 
 @theme inline {
@@ -35,9 +35,9 @@
   --color-ink-3: var(--ink-3);
   --color-rule: var(--rule);
   --color-rule-soft: var(--rule-soft);
-  --color-blush: var(--blush);
-  --color-blush-ink: var(--blush-ink);
-  --color-blush-soft: var(--blush-soft);
+  --color-sand: var(--sand);
+  --color-sand-ink: var(--sand-ink);
+  --color-sand-soft: var(--sand-soft);
   --color-warn: var(--warn);
   --color-warn-soft: var(--warn-soft);
   --color-ok: var(--ok);
@@ -70,16 +70,16 @@
 }
 
 :root {
-  --paper: #fcf2f0;
+  --paper: #f2f2f0;
   --cell: #ffffff;
   --ink: #141414;
   --ink-2: #463f42;
   --ink-3: #6b6266;
   --rule: #141414;
-  --rule-soft: #eadcd8;
-  --blush: #f8ad9d;
-  --blush-ink: #2e1610;
-  --blush-soft: #fde6e0;
+  --rule-soft: #e3e3df;
+  --sand: #e8d9c4;
+  --sand-ink: #141414;
+  --sand-soft: #f3ebdf;
   --warn: #8a4b00;
   --warn-soft: #fdf1d6;
   --ok: #10663d;
@@ -93,17 +93,17 @@
   --card-foreground: var(--ink);
   --popover: var(--cell);
   --popover-foreground: var(--ink);
-  --primary: var(--blush);
-  --primary-foreground: var(--blush-ink);
+  --primary: var(--sand);
+  --primary-foreground: var(--sand-ink);
   --secondary: var(--paper);
   --secondary-foreground: var(--ink);
-  --muted: #f6ebe8;
+  --muted: #ebebe8;
   --muted-foreground: var(--ink-3);
-  --accent: var(--blush-soft);
+  --accent: var(--sand-soft);
   --accent-foreground: var(--ink);
   --destructive: var(--danger);
   --border: var(--rule-soft);
-  --input: #cdbdb8;
+  --input: #c6c6c1;
   --ring: var(--ink);
   --radius: 0.5rem;
 }
@@ -116,15 +116,15 @@
     @apply font-sans;
     font-synthesis: none;
     -webkit-tap-highlight-color: transparent;
-    scrollbar-color: #cdbdb8 transparent;
+    scrollbar-color: #c6c6c1 transparent;
   }
   body {
     @apply bg-background text-foreground;
     font-feature-settings: "tnum" 1;
   }
   ::selection {
-    background: var(--blush);
-    color: var(--blush-ink);
+    background: var(--sand);
+    color: var(--sand-ink);
   }
   input, textarea {
     caret-color: var(--ink);
