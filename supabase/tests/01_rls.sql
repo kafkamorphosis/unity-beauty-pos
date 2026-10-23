@@ -45,3 +45,15 @@ begin
   perform pg_temp.expect_error('select count(*) from public.orders', 'permission denied');
   reset role;
 end $$;
+
+-- self-signup can't grant itself a role: user_metadata.role is ignored, no app role means inactive
+do $$
+declare v_id uuid := gen_random_uuid(); v_active boolean; v_role public.app_role;
+begin
+  insert into auth.users (id, instance_id, aud, role, email, raw_user_meta_data, raw_app_meta_data, created_at, updated_at)
+  values (v_id, '00000000-0000-0000-0000-000000000000', 'authenticated', 'authenticated', 'intruder@unitybeauty.local',
+          jsonb_build_object('username', 'intruder', 'role', 'admin'), jsonb_build_object('provider', 'email'), now(), now());
+  select is_active, role into v_active, v_role from public.profiles where id = v_id;
+  assert v_active = false, 'self-signup profile is inactive';
+  assert v_role = 'seller', 'self-signup role is not taken from user metadata';
+end $$;

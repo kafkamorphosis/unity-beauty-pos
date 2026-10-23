@@ -5,10 +5,11 @@ create function pg_temp.make_user(p_role text, p_active boolean default true) re
 language plpgsql as $$
 declare v_id uuid := gen_random_uuid();
 begin
-  insert into auth.users (id, instance_id, aud, role, email, raw_user_meta_data, created_at, updated_at)
+  insert into auth.users (id, instance_id, aud, role, email, raw_user_meta_data, raw_app_meta_data, created_at, updated_at)
   values (v_id, '00000000-0000-0000-0000-000000000000', 'authenticated', 'authenticated',
           'u_' || left(v_id::text, 8) || '@unitybeauty.local',
-          jsonb_build_object('username', 'u_' || left(v_id::text, 8), 'full_name', 'Test ' || p_role, 'role', p_role),
+          jsonb_build_object('username', 'u_' || left(v_id::text, 8), 'full_name', 'Test ' || p_role),
+          jsonb_build_object('provider', 'email', 'role', p_role),
           now(), now());
   update public.profiles set is_active = p_active where id = v_id;
   return v_id;
