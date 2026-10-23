@@ -1,6 +1,64 @@
+// All UI copy, Uzbek (Latin). oʻ/gʻ use U+02BB (ʻ); the tutuq belgisi uses U+02BC (ʼ).
 export const uz = {
+  brand: "Unity Beauty",
   common: {
     genericError: "Xatolik yuz berdi. Qaytadan urinib koʻring.",
+    offline: "Internet yoʻq. Ulanish tiklanguncha savdo qilib boʻlmaydi.",
+    save: "Saqlash",
+    cancel: "Bekor qilish",
+    close: "Yopish",
+    confirm: "Tasdiqlash",
+    edit: "Tahrirlash",
+    search: "Qidirish",
+    loading: "Yuklanmoqda…",
+    retry: "Qayta urinish",
+    pcs: "ta",
+    yes: "Ha",
+    no: "Yoʻq",
+    signOut: "Chiqish",
+    print: "Chop etish",
+    camera: "Kamera",
+  },
+  nav: {
+    checkout: "Kassa",
+    inventory: "Ombor",
+    orders: "Buyurtmalar",
+    tekpe: "Tekpe",
+    admin: "Akkauntlar",
+    settings: "Sozlamalar",
+  },
+  roles: {
+    admin: "Administrator",
+    owner: "Egasi",
+    seller: "Sotuvchi",
+  },
+  login: {
+    title: "Tizimga kirish",
+    username: "Login",
+    password: "Parol",
+    submit: "Kirish",
+    invalid: "Login yoki parol notoʻgʻri",
+    disabled: "Bu akkaunt oʻchirilgan. Administratorga murojaat qiling.",
+  },
+  payment: {
+    cash: "Naqd",
+    card: "Karta",
+    transfer: "Oʻtkazma",
+  },
+  destination: {
+    KR: "Koreya",
+    UZ: "Oʻzbekiston",
+  },
+  status: {
+    completed: "Bajarildi",
+    new: "Yangi",
+    ready: "Tayyor",
+    picked_up: "Olib ketildi",
+    cancelled: "Bekor qilingan",
+  },
+  orderType: {
+    store: "Doʻkon",
+    tekpe: "Tekpe",
   },
   scanner: {
     title: "Skanerlash",
@@ -8,6 +66,7 @@ export const uz = {
     hintContinuous: "Kamerani shtrix-kodlarga birma-bir qarating. Tugatgach yoping.",
     permissionDenied: "Kameraga ruxsat berilmadi. Brauzer sozlamalaridan ruxsat bering.",
     unavailable: "Kamera topilmadi yoki bu brauzerda ishlamaydi.",
+    ready: "Skaner tayyor",
   },
   errors: {
     EMPTY_CART: "Savat boʻsh",
