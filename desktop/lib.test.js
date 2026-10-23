@@ -51,3 +51,15 @@ test("withTimeout rejects with the reason when the promise never settles", async
   await assert.rejects(withTimeout(new Promise(() => {}), 20, "PRINT_TIMEOUT"), /PRINT_TIMEOUT/);
   assert.equal(await withTimeout(Promise.resolve(5), 1000, "x"), 5);
 });
+
+test("isSafeExternalUrl: only web, mail and phone links may leave the app", () => {
+  const { isSafeExternalUrl } = require("./lib");
+  assert.equal(isSafeExternalUrl("https://supabase.com/docs"), true);
+  assert.equal(isSafeExternalUrl("http://example.com"), true);
+  assert.equal(isSafeExternalUrl("mailto:a@b.uz"), true);
+  assert.equal(isSafeExternalUrl("tel:+821012345678"), true);
+  assert.equal(isSafeExternalUrl("file:///C:/Windows/System32/calc.exe"), false);
+  assert.equal(isSafeExternalUrl("smb://evil/share"), false);
+  assert.equal(isSafeExternalUrl("ms-settings:"), false);
+  assert.equal(isSafeExternalUrl("not a url"), false);
+});

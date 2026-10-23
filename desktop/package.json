@@ -39,7 +39,8 @@
       "createStartMenuShortcut": true,
       "shortcutName": "Unity Beauty",
       "artifactName": "UnityBeautyPOS-Setup-${version}.${ext}"
-    }
+    },
+    "electronDist": "node_modules/electron/dist"
   },
   "devDependencies": {
     "electron": "44.9.3",

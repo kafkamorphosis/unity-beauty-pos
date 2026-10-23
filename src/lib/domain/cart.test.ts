@@ -64,8 +64,22 @@ describe("limits and refresh", () => {
     let s = cartReducer([], { type: "add", product: A });
     s = cartReducer(s, { type: "add", product: B });
     s = cartReducer(s, { type: "toggleWholesale", id: "a" });
-    const fresh = cartReducer(s, { type: "refresh", products: [{ ...A, retailPrice: 11000, wholesalePrice: 9000, stock: 2 }] });
+    const fresh = cartReducer(s, { type: "refresh", ids: ["a", "b"], products: [{ ...A, retailPrice: 11000, wholesalePrice: 9000, stock: 2 }] });
     expect(fresh).toHaveLength(1);
     expect(fresh[0]).toMatchObject({ id: "a", qty: 1, isWholesale: true, wholesalePrice: 9000, stock: 2 });
+  });
+});
+
+describe("refresh only touches the lines it asked about", () => {
+  it("keeps a line scanned after the refresh request went out", () => {
+    let s = cartReducer([], { type: "add", product: A });
+    s = cartReducer(s, { type: "add", product: B }); // scanned while the refresh was in flight
+    const fresh = cartReducer(s, { type: "refresh", ids: ["a"], products: [{ ...A, retailPrice: 11000 }] });
+    expect(fresh.map((l) => l.id)).toEqual(["a", "b"]);
+    expect(fresh[0].retailPrice).toBe(11000);
+  });
+  it("drops a requested line whose product is gone", () => {
+    const s = cartReducer(cartReducer([], { type: "add", product: A }), { type: "add", product: B });
+    expect(cartReducer(s, { type: "refresh", ids: ["a", "b"], products: [A] }).map((l) => l.id)).toEqual(["a"]);
   });
 });

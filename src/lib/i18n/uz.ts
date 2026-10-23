@@ -85,7 +85,7 @@ export const uz = {
     telegramTest: "Sinov xabarini yuborish",
     telegramTestText: "✅ Unity Beauty: sinov xabari. Xabarnomalar ishlayapti.",
     telegramTestSent: "Sinov xabari yuborildi",
-    telegramNeedSetup: "Avval token va chatni saqlang",
+    telegramNeedSetup: "Bot tokeni va chatni kiriting (yoki avval saqlang)",
   },
   inventory: {
     title: "Ombor",

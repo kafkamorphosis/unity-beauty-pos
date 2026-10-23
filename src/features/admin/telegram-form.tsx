@@ -39,7 +39,7 @@ export function TelegramForm({ initial }: { initial: TelegramSettings }) {
 
   async function test() {
     setBusy("test");
-    const r = await sendTelegramTest();
+    const r = await sendTelegramTest({ token, chatId });
     setBusy(null);
     if (r.ok) toast.success(uz.admin.telegramTestSent);
     else toast.error(r.error);

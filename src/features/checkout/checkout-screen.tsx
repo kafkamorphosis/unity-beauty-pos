@@ -86,7 +86,7 @@ export function CheckoutScreen() {
       .select("*")
       .in("id", restoredIds)
       .eq("is_archived", false)
-      .then(({ data }) => data && dispatch({ type: "refresh", products: data.map(toCartProduct) }));
+      .then(({ data }) => data && dispatch({ type: "refresh", ids: restoredIds, products: data.map(toCartProduct) }));
   }, [restoredIds, dispatch]);
 
   useEffect(() => {

@@ -110,7 +110,7 @@ export function ProductTable({ products }: { products: ReportProduct[] }) {
               </div>
               <div className="border-l border-rule-soft px-2 py-1.5">
                 <dt className="caption">{uz.analytics.profit}</dt>
-                <dd className="font-bold text-ok"><Krw value={p.revenue - p.cost} /></dd>
+                <dd className={cn("font-bold", p.revenue - p.cost >= 0 ? "text-ok" : "text-danger")}><Krw value={p.revenue - p.cost} /></dd>
               </div>
             </dl>
           </li>

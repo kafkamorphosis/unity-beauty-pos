@@ -36,6 +36,16 @@ function isAllowedUrl(target, appUrl) {
   }
 }
 
+// shell.openExternal hands URLs to Windows; file:, smb: or custom schemes could launch programs.
+const SAFE_EXTERNAL = new Set(["https:", "http:", "mailto:", "tel:"]);
+function isSafeExternalUrl(target) {
+  try {
+    return SAFE_EXTERNAL.has(new URL(target).protocol);
+  } catch {
+    return false;
+  }
+}
+
 function printUrl(appUrl, orderId) {
   if (!UUID_RE.test(String(orderId))) throw new Error("INVALID_ORDER_ID");
   return `${appUrl}/print/${encodeURIComponent(orderId)}`;
@@ -67,4 +77,4 @@ function withTimeout(promise, ms, reason) {
   ]).finally(() => clearTimeout(timer));
 }
 
-module.exports = { normalizeUrl, resolveAppUrl, isAllowedUrl, printUrl, readSettings, writeSettings, withTimeout };
+module.exports = { normalizeUrl, resolveAppUrl, isAllowedUrl, isSafeExternalUrl, printUrl, readSettings, writeSettings, withTimeout };

@@ -1,7 +1,7 @@
 // Unity Beauty — Windows shell around the web app, adding silent A4 printing.
 const { app, BrowserWindow, ipcMain, Menu, shell } = require("electron");
 const path = require("node:path");
-const { normalizeUrl, resolveAppUrl, isAllowedUrl, printUrl, readSettings, writeSettings, withTimeout } = require("./lib");
+const { normalizeUrl, resolveAppUrl, isAllowedUrl, isSafeExternalUrl, printUrl, readSettings, writeSettings, withTimeout } = require("./lib");
 const config = require("./config.json");
 
 const DEV = process.argv.includes("--dev");
@@ -12,16 +12,32 @@ let appUrl = null;
 let mainWin = null;
 let settingsWin = null;
 
-if (!app.requestSingleInstanceLock()) app.quit();
+// --user-data=<dir> gives a test run its own settings (and its own single-instance lock).
+const userDataArg = process.argv.find((a) => a.startsWith("--user-data="));
+if (userDataArg) app.setPath("userData", userDataArg.slice("--user-data=".length));
+
+// A second launch exits at once; the running instance focuses itself (see "second-instance").
+if (!app.requestSingleInstanceLock()) app.exit(0);
 app.setAppUserModelId("uz.unitybeauty.pos");
 
 function currentUrl() {
   return resolveAppUrl({ argv: process.argv, saved: readSettings(settingsFile()).url ?? null, config });
 }
 
+function openOutside(url) {
+  if (isSafeExternalUrl(url)) shell.openExternal(url);
+}
+
 function loadApp() {
   appUrl = currentUrl();
   if (appUrl) mainWin.loadURL(appUrl);
+  else openSettings();
+}
+
+// First run has no address yet: show only Settings. Saving starts the app; closing quits.
+function start() {
+  appUrl = currentUrl();
+  if (appUrl) createMain();
   else openSettings();
 }
 
@@ -47,16 +63,19 @@ function createMain() {
   // runs inside this window, so it can never reach the print bridge.
   mainWin.webContents.setWindowOpenHandler(({ url }) => {
     if (appUrl && isAllowedUrl(url, appUrl)) return { action: "allow" };
-    shell.openExternal(url);
+    openOutside(url);
     return { action: "deny" };
   });
-  mainWin.webContents.on("will-navigate", (event, url) => {
+  const keepInside = (event, url) => {
     if (url.startsWith("file:")) return;
     if (!appUrl || !isAllowedUrl(url, appUrl)) {
       event.preventDefault();
-      shell.openExternal(url);
+      openOutside(url);
     }
-  });
+  };
+  mainWin.webContents.on("will-navigate", keepInside);
+  // Server-side redirects don't go through will-navigate.
+  mainWin.webContents.on("will-redirect", keepInside);
   mainWin.webContents.on("did-fail-load", (_e, code, _desc, _url, isMainFrame) => {
     // -3 is an aborted navigation (normal during redirects).
     if (isMainFrame && code !== -3) mainWin.loadFile(path.join(__dirname, "offline.html"));
@@ -79,7 +98,10 @@ function openSettings() {
     webPreferences: { preload: path.join(__dirname, "shell-preload.js"), contextIsolation: true, nodeIntegration: false, sandbox: true },
   });
   settingsWin.loadFile(path.join(__dirname, "settings.html"));
-  settingsWin.on("closed", () => (settingsWin = null));
+  settingsWin.on("closed", () => {
+    settingsWin = null;
+    if (!mainWin) app.quit();
+  });
 }
 
 // Loads a page in a hidden window (same session, so the user is signed in), waits for every image,
@@ -98,11 +120,15 @@ async function printPage(url, deviceName, { requireSheet }) {
       30_000,
       "PRINT_TIMEOUT",
     );
-    const ready = await win.webContents.executeJavaScript(
-      `(async () => {
-        await Promise.all([...document.images].map((i) => (i.complete ? null : i.decode().catch(() => null))));
-        return ${requireSheet ? "Boolean(document.querySelector('.sheet'))" : "true"};
-      })()`,
+    const ready = await withTimeout(
+      win.webContents.executeJavaScript(
+        `(async () => {
+          await Promise.all([...document.images].map((i) => (i.complete ? null : i.decode().catch(() => null))));
+          return ${requireSheet ? "Boolean(document.querySelector('.sheet'))" : "true"};
+        })()`,
+      ),
+      15_000,
+      "PRINT_TIMEOUT",
     );
     if (!ready) throw new Error("SHEET_NOT_FOUND");
     await withTimeout(
@@ -150,6 +176,7 @@ ipcMain.handle("settings:save", (event, input) => {
   if (!url) throw new Error("INVALID_URL");
   writeSettings(settingsFile(), { url, printer: (input && input.printer) || "" });
   if (mainWin) loadApp();
+  else start();
   if (settingsWin) settingsWin.close();
 });
 
@@ -177,7 +204,7 @@ ipcMain.handle("shell:open-settings", (event) => {
 // --- App lifecycle -----------------------------------------------------------------------------
 
 app.on("second-instance", () => {
-  if (!mainWin) return;
+  if (!mainWin) return openSettings();
   if (mainWin.isMinimized()) mainWin.restore();
   mainWin.focus();
 });
@@ -198,7 +225,7 @@ app.whenReady().then(() => {
       },
     ]),
   );
-  createMain();
+  start();
 });
 
 app.on("window-all-closed", () => app.quit());

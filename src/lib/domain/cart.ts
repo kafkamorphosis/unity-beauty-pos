@@ -21,7 +21,7 @@ export type CartAction =
   | { type: "toggleWholesale"; id: string }
   | { type: "remove"; id: string }
   | { type: "clear" }
-  | { type: "refresh"; products: CartProduct[] };
+  | { type: "refresh"; ids: string[]; products: CartProduct[] };
 
 function update(lines: CartLine[], id: string, fn: (l: CartLine) => CartLine): CartLine[] {
   return lines.map((l) => (l.id === id ? fn(l) : l));
@@ -51,9 +51,13 @@ export function cartReducer(lines: CartLine[], a: CartAction): CartLine[] {
     case "clear":
       return [];
     case "refresh": {
-      // A restored cart takes today's prices and stock; products that are gone (archived) drop out.
+      // A restored cart takes today's prices and stock. Only the lines that were asked about can drop
+      // out (their product is gone); anything scanned while the request was in flight is kept.
+      const asked = new Set(a.ids);
       const byId = new Map(a.products.map((p) => [p.id, p]));
-      return lines.filter((l) => byId.has(l.id)).map((l) => ({ ...l, ...byId.get(l.id)! }));
+      return lines
+        .filter((l) => !asked.has(l.id) || byId.has(l.id))
+        .map((l) => (byId.has(l.id) ? { ...l, ...byId.get(l.id)! } : l));
     }
   }
 }

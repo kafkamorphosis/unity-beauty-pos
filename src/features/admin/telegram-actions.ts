@@ -42,6 +42,10 @@ export async function saveTelegram(input: { token: string; chatId: string; enabl
   if (!sb) return { ok: false, error: uz.admin.missingKey };
   const token = input.token.trim();
   if (token && !TOKEN_RE.test(token)) return { ok: false, error: uz.admin.telegramTokenInvalid };
+  // The switch can't be on while nothing could be sent.
+  if (input.enabled && (!(token || (await readSecrets())?.telegram_bot_token) || !input.chatId.trim())) {
+    return { ok: false, error: uz.admin.telegramNeedSetup };
+  }
   const patch = {
     telegram_chat_id: input.chatId.trim() || null,
     telegram_enabled: input.enabled,
@@ -88,12 +92,16 @@ export async function findTelegramChats(tokenInput: string): Promise<{ ok: true;
   }
 }
 
-export async function sendTelegramTest(): Promise<ActionResult> {
+// Tests what is in the form right now (falling back to what is saved), so it works before Save.
+export async function sendTelegramTest(input: { token: string; chatId: string }): Promise<ActionResult> {
   await requireRole(["admin"]);
   const s = await readSecrets();
-  if (!s?.telegram_bot_token || !s.telegram_chat_id) return { ok: false, error: uz.admin.telegramNeedSetup };
+  const token = input.token.trim() || s?.telegram_bot_token || "";
+  const chatId = input.chatId.trim() || s?.telegram_chat_id || "";
+  if (!token || !chatId) return { ok: false, error: uz.admin.telegramNeedSetup };
+  if (!TOKEN_RE.test(token)) return { ok: false, error: uz.admin.telegramTokenInvalid };
   try {
-    const r = await telegram(s.telegram_bot_token, "sendMessage", { chat_id: s.telegram_chat_id, text: uz.admin.telegramTestText });
+    const r = await telegram(token, "sendMessage", { chat_id: chatId, text: uz.admin.telegramTestText });
     return r.ok ? { ok: true } : { ok: false, error: r.description ?? uz.common.genericError };
   } catch {
     return { ok: false, error: uz.common.genericError };
