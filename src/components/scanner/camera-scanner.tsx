@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useEffectEvent, useRef, useState } from "react";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { createDeduper } from "@/lib/domain/dedupe";
 import { uz } from "@/lib/i18n/uz";
@@ -35,10 +35,8 @@ export function CameraScanner({
 }) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const [error, setError] = useState<string | null>(null);
-  const onScanRef = useRef(onScan);
-  onScanRef.current = onScan;
-  const onCloseRef = useRef(onClose);
-  onCloseRef.current = onClose;
+  const handleScan = useEffectEvent(onScan);
+  const handleClose = useEffectEvent(onClose);
 
   useEffect(() => {
     if (!open) return;
@@ -46,7 +44,6 @@ export function CameraScanner({
     let stream: MediaStream | null = null;
     let frame = 0;
     const accept = createDeduper(1500);
-    setError(null);
 
     (async () => {
       try {
@@ -67,9 +64,9 @@ export function CameraScanner({
               const code = codes[0]?.rawValue?.trim();
               if (code && !stopped && accept(code, performance.now())) {
                 scanFeedback(true);
-                onScanRef.current(code);
+                handleScan(code);
                 if (!continuous) {
-                  onCloseRef.current();
+                  handleClose();
                   return;
                 }
               }
@@ -94,7 +91,14 @@ export function CameraScanner({
   }, [open, continuous]);
 
   return (
-    <Dialog open={open} onOpenChange={(o) => !o && onClose()}>
+    <Dialog
+      open={open}
+      onOpenChange={(o) => {
+        if (o) return;
+        setError(null);
+        onClose();
+      }}
+    >
       <DialogContent className="max-sm:h-dvh max-sm:max-w-full max-sm:rounded-none sm:max-w-md">
         <DialogHeader>
           <DialogTitle>{title}</DialogTitle>

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useEffectEvent } from "react";
 import { createScanBurstDetector } from "@/lib/domain/scan-burst";
 
 type Field = HTMLInputElement | HTMLTextAreaElement;
@@ -19,8 +19,7 @@ function restoreValue(el: Field, value: string) {
 // the field's text is put back the way it was and the code goes to onScan instead.
 export function useHidScanner(onScan: (code: string) => void, opts: { enabled?: boolean } = {}): void {
   const enabled = opts.enabled ?? true;
-  const onScanRef = useRef(onScan);
-  onScanRef.current = onScan;
+  const handleScan = useEffectEvent(onScan);
 
   useEffect(() => {
     if (!enabled) return;
@@ -38,7 +37,7 @@ export function useHidScanner(onScan: (code: string) => void, opts: { enabled?: 
       if (r.scan) {
         if (origin && origin.el.value !== origin.value) restoreValue(origin.el, origin.value);
         origin = null;
-        onScanRef.current(r.scan);
+        handleScan(r.scan);
       }
     };
     window.addEventListener("keydown", handler, { capture: true });
