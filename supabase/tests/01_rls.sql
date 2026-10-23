@@ -74,3 +74,17 @@ begin
   select is_active into v_active from public.profiles where id = v_id;
   assert not v_active, 'unrelated metadata updates keep a disabled user disabled';
 end $$;
+
+-- a later role change never re-enables a disabled account
+do $$
+declare v_id uuid := gen_random_uuid(); v_active boolean; v_role public.app_role;
+begin
+  insert into auth.users (id, instance_id, aud, role, email, raw_user_meta_data, raw_app_meta_data, created_at, updated_at)
+  values (v_id, '00000000-0000-0000-0000-000000000000', 'authenticated', 'authenticated', 'rc@unitybeauty.local',
+          jsonb_build_object('username', 'rc'), jsonb_build_object('provider', 'email', 'role', 'seller'), now(), now());
+  update public.profiles set is_active = false where id = v_id;
+  update auth.users set raw_app_meta_data = raw_app_meta_data || jsonb_build_object('role', 'owner') where id = v_id;
+  select is_active, role into v_active, v_role from public.profiles where id = v_id;
+  assert v_role = 'owner', 'role change applies';
+  assert not v_active, 'role change keeps the account disabled';
+end $$;

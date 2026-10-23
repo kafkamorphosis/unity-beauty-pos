@@ -212,6 +212,7 @@ export const uz = {
     open: "Ochish",
     weight: "Ogʻirlik",
     items: "Mahsulot",
+    loadMore: (n: number) => `Koʻproq yuklash (${n} ta qoldi)`,
   },
   sheet: {
     date: "Sana",

@@ -49,7 +49,11 @@ export function CameraScanner({
       try {
         if (!navigator.mediaDevices?.getUserMedia) throw new Error("unavailable");
         stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" }, audio: false });
-        if (stopped) return;
+        if (stopped) {
+          // Closed while the permission prompt was open: release the camera we just got.
+          stream.getTracks().forEach((t) => t.stop());
+          return;
+        }
         const video = videoRef.current!;
         video.srcObject = stream;
         await video.play();

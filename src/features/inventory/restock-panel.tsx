@@ -8,6 +8,7 @@ import { ProductThumb } from "@/components/product-thumb";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import type { Product } from "@/lib/database.types";
+import { MAX_QTY } from "@/lib/domain/cart";
 import { errorMessage } from "@/lib/domain/errors";
 import { supabaseBrowser } from "@/lib/supabase/client";
 import { uz } from "@/lib/i18n/uz";
@@ -61,13 +62,13 @@ export function RestockPanel({ product, onDone, onCancel }: { product: Product; 
             value={qty === 0 ? "" : qty}
             inputMode="numeric"
             aria-label={uz.inventory.quantity}
-            onChange={(e) => setQty(Number(e.target.value.replace(/\D/g, "") || 0))}
+            onChange={(e) => setQty(Math.min(MAX_QTY, Number(e.target.value.replace(/\D/g, "") || 0)))}
             onFocus={(e) => e.currentTarget.select()}
             className="monument min-w-0 flex-1 text-center text-3xl outline-none focus:bg-sand-soft"
           />
           <button
             type="button"
-            onClick={() => setQty((q) => q + STEP)}
+            onClick={() => setQty((q) => Math.min(MAX_QTY, q + STEP))}
             className="flex w-20 items-center justify-center gap-1 border-l border-ink font-bold hover:bg-paper"
             aria-label={`+${STEP}`}
           >
@@ -83,7 +84,7 @@ export function RestockPanel({ product, onDone, onCancel }: { product: Product; 
             value={cost}
             inputMode="numeric"
             placeholder={String(product.cost_price)}
-            onChange={(e) => setCost(e.target.value.replace(/\D/g, ""))}
+            onChange={(e) => setCost(e.target.value.replace(/\D/g, "").slice(0, 10))}
             className="num max-w-40 font-semibold"
           />
           <span className="text-sm text-ink-3">

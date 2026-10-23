@@ -22,6 +22,7 @@ import { cn } from "@/lib/utils";
 import { ReadyScanDialog } from "./ready-scan-dialog";
 
 type Tab = "new" | "ready" | "picked_up";
+const PAGE = 100;
 const TABS: Tab[] = ["new", "ready", "picked_up"];
 
 async function countStatus(status: Tab): Promise<number> {
@@ -41,6 +42,7 @@ export function TekpeScreen() {
   const [scanning, setScanning] = useState(false);
   const [busy, setBusy] = useState(false);
   const [version, setVersion] = useState(0);
+  const [limit, setLimit] = useState(PAGE);
 
   const reload = useCallback(() => setVersion((v) => v + 1), []);
 
@@ -49,7 +51,7 @@ export function TekpeScreen() {
     (async () => {
       try {
         const [{ rows }, ...c] = await Promise.all([
-          listOrders(supabaseBrowser(), { type: "tekpe", status: tab }, 100),
+          listOrders(supabaseBrowser(), { type: "tekpe", status: tab }, limit),
           ...TABS.map(countStatus),
         ]);
         if (cancelled) return;
@@ -62,7 +64,7 @@ export function TekpeScreen() {
     return () => {
       cancelled = true;
     };
-  }, [tab, version]);
+  }, [tab, version, limit]);
 
   useEffect(() => {
     let timer: ReturnType<typeof setTimeout> | undefined;
@@ -116,6 +118,7 @@ export function TekpeScreen() {
               aria-selected={tab === t}
               onClick={() => {
                 setTab(t);
+                setLimit(PAGE);
                 setSelected(new Set());
               }}
               className={cn(
@@ -210,6 +213,13 @@ export function TekpeScreen() {
               </li>
             ))}
           </ul>
+        )}
+        {rows && counts && rows.length < counts[tab] && (
+          <div className="border-t border-ink p-2 text-center">
+            <Button variant="outline" onClick={() => setLimit((l) => l + PAGE)}>
+              {uz.tekpe.loadMore(counts[tab] - rows.length)}
+            </Button>
+          </div>
         )}
       </div>
 

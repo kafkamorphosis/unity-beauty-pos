@@ -23,6 +23,7 @@ export function TekpeDialog({
   totals,
   rates,
   busy,
+  offline = false,
   onConfirm,
 }: {
   open: boolean;
@@ -32,6 +33,7 @@ export function TekpeDialog({
   totals: { subtotal: number; totalWeightG: number };
   rates: ShippingRates | null;
   busy: boolean;
+  offline?: boolean;
   onConfirm(destination: Destination): void;
 }) {
   const [destination, setDestination] = useState<Destination>("KR");
@@ -132,7 +134,7 @@ export function TekpeDialog({
           </Button>
           <Button
             size="lg"
-            disabled={busy || !rates}
+            disabled={busy || !rates || offline}
             onClick={() => {
               setTouched(true);
               if (!missing) onConfirm(destination);

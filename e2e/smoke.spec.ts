@@ -41,7 +41,7 @@ test("sell a product by Tekpe to Uzbekistan and mark it ready", async ({ page })
 
   await page.getByRole("button", { name: "Tekpe" }).first().click();
   await page.getByRole("radio", { name: /Oʻzbekiston/ }).click();
-  await page.locator("#tekpe-phone").fill("01012345678");
+  await page.locator("#tekpe-phone").fill("010-0000-0001");
   await page.getByRole("dialog").getByLabel("Mijoz ismi").fill("E2E Mijoz");
   await page.getByRole("button", { name: "Tekpe buyurtma yaratish" }).click();
 

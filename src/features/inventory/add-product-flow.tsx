@@ -192,7 +192,12 @@ export function AddProductFlow({
             />
           )}
           {step.kind === "new" && (
-            <ProductForm barcode={step.barcode} onSaved={done} onCancel={() => setStep({ kind: "scan" })} />
+            <ProductForm
+              barcode={step.barcode}
+              onSaved={done}
+              onCancel={() => setStep({ kind: "scan" })}
+              onExisting={(product) => setStep(product.is_archived ? { kind: "archived", product } : { kind: "restock", product })}
+            />
           )}
         </DialogContent>
       </Dialog>

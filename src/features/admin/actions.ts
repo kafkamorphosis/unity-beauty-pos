@@ -59,8 +59,11 @@ export async function resetPassword(userId: string, password: string): Promise<A
 export async function setRole(userId: string, role: Role): Promise<ActionResult> {
   const me = await requireRole(["admin"]);
   if (userId === me.id && role !== "admin") return fail(uz.admin.cannotChangeSelf);
-  const sb = await supabaseServer();
-  const { error } = await sb.from("profiles").update({ role }).eq("id", userId);
+  const sb = admin();
+  if (!sb) return fail(uz.admin.missingKey);
+  // app_metadata is the source of the role; the on_auth_user_role_changed trigger updates the
+  // profile and never re-enables a disabled account.
+  const { error } = await sb.auth.admin.updateUserById(userId, { app_metadata: { role } });
   if (error) return fail(error.message);
   revalidatePath("/admin");
   return { ok: true };

@@ -52,3 +52,20 @@ describe("cartTotals / isOverStock", () => {
     expect(isOverStock(a)).toBe(false);
   });
 });
+
+describe("limits and refresh", () => {
+  it("caps quantities at 99 999", () => {
+    const s = cartReducer([], { type: "add", product: A });
+    expect(cartReducer(s, { type: "setQty", id: "a", qty: 150000 })[0].qty).toBe(99999);
+    const full = cartReducer(s, { type: "setQty", id: "a", qty: 99999 });
+    expect(cartReducer(full, { type: "inc", id: "a" })[0].qty).toBe(99999);
+  });
+  it("refresh updates price and stock, keeps qty and optom, drops products that are gone", () => {
+    let s = cartReducer([], { type: "add", product: A });
+    s = cartReducer(s, { type: "add", product: B });
+    s = cartReducer(s, { type: "toggleWholesale", id: "a" });
+    const fresh = cartReducer(s, { type: "refresh", products: [{ ...A, retailPrice: 11000, wholesalePrice: 9000, stock: 2 }] });
+    expect(fresh).toHaveLength(1);
+    expect(fresh[0]).toMatchObject({ id: "a", qty: 1, isWholesale: true, wholesalePrice: 9000, stock: 2 });
+  });
+});

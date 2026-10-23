@@ -16,6 +16,7 @@ import { findProductByBarcode } from "@/lib/data/products";
 import { getShippingRates } from "@/lib/data/settings";
 import type { CartProduct } from "@/lib/domain/cart";
 import { errorMessage } from "@/lib/domain/errors";
+import { isNetworkError, REQUEST_TIMEOUT_MS } from "@/lib/domain/network";
 import { formatKrw } from "@/lib/domain/money";
 import { formatOrderNo } from "@/lib/domain/order-no";
 import { normalizePhone } from "@/lib/domain/phone";
@@ -48,9 +49,6 @@ function toCartProduct(p: Product): CartProduct {
 
 type Attempt = { type: "store" } | { type: "tekpe"; destination: Destination };
 
-function isNetworkError(e: { code?: string; message?: string }): boolean {
-  return !e.code && /fetch|network/i.test(e.message ?? "");
-}
 
 export function CheckoutScreen() {
   const { lines, dispatch, totals, loadRequest, saveRequest, finishOrder } = useCart();
@@ -79,6 +77,18 @@ export function CheckoutScreen() {
     getShippingRates(supabaseBrowser()).then(setRates).catch((e) => toast.error(errorMessage(e)));
   }, []);
 
+  // A cart restored from an earlier visit gets today's prices and stock before anything is sold.
+  const [restoredIds] = useState(() => lines.map((l) => l.id));
+  useEffect(() => {
+    if (restoredIds.length === 0) return;
+    supabaseBrowser()
+      .from("products")
+      .select("*")
+      .in("id", restoredIds)
+      .eq("is_archived", false)
+      .then(({ data }) => data && dispatch({ type: "refresh", products: data.map(toCartProduct) }));
+  }, [restoredIds, dispatch]);
+
   useEffect(() => {
     if (!phone) return;
     let cancelled = false;
@@ -105,7 +115,7 @@ export function CheckoutScreen() {
       if (!product) {
         scanFeedback(false);
         toast.error(`${uz.checkout.notFound}: ${code}`, {
-          action: { label: uz.checkout.addToInventory, onClick: () => router.push("/ombor") },
+          action: { label: uz.checkout.addToInventory, onClick: () => router.push(`/ombor?barcode=${encodeURIComponent(code)}`) },
         });
         return;
       }
@@ -125,7 +135,7 @@ export function CheckoutScreen() {
   });
 
   async function submit(attempt: Attempt) {
-    if (empty || busy) return;
+    if (empty || busy || !online) return;
     if (customerState.phone.trim() && !phone) {
       toast.error(uz.checkout.phoneInvalid);
       return;
@@ -148,7 +158,12 @@ export function CheckoutScreen() {
         loadRequest(),
         fp,
         async (requestId) => {
-          const { data, error } = await sb.from("orders").select("*").eq("request_id", requestId).maybeSingle();
+          const { data, error } = await sb
+            .from("orders")
+            .select("*")
+            .eq("request_id", requestId)
+            .abortSignal(AbortSignal.timeout(REQUEST_TIMEOUT_MS))
+            .maybeSingle();
           if (error) throw error;
           return data;
         },
@@ -156,7 +171,7 @@ export function CheckoutScreen() {
       );
     } catch (e) {
       setBusy(false);
-      if (isNetworkError(e as { code?: string; message?: string })) setFailed(attempt);
+      if (isNetworkError(e)) setFailed(attempt);
       else toast.error(errorMessage(e));
       return;
     }
@@ -179,7 +194,7 @@ export function CheckoutScreen() {
       p_payment_method: payload.payment,
       p_type: payload.type,
       p_destination: payload.destination,
-    });
+    }).abortSignal(AbortSignal.timeout(REQUEST_TIMEOUT_MS));
     setBusy(false);
     if (error) {
       if (isNetworkError(error)) setFailed(attempt);
@@ -322,6 +337,7 @@ export function CheckoutScreen() {
         totals={totals}
         rates={rates}
         busy={busy}
+        offline={!online}
         onConfirm={(destination) => submit({ type: "tekpe", destination })}
       />
       <SuccessDialog order={success} onNewOrder={newOrder} />

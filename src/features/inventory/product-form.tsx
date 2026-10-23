@@ -7,12 +7,15 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ProductThumb } from "@/components/product-thumb";
 import type { Product } from "@/lib/database.types";
+import { findProductByBarcode } from "@/lib/data/products";
 import { uploadProductPhoto } from "@/lib/data/storage";
 import { errorMessage } from "@/lib/domain/errors";
 import { supabaseBrowser } from "@/lib/supabase/client";
 import { uz } from "@/lib/i18n/uz";
 import { cn } from "@/lib/utils";
 import { resizeImage } from "./resize-image";
+
+const MAX_NUMBER = 2_000_000_000;
 
 type Fields = { name: string; cost: string; retail: string; wholesale: string; weight: string; qty: string; threshold: string };
 
@@ -39,7 +42,10 @@ function NumCell({
           value={value}
           inputMode="numeric"
           required={required}
-          onChange={(e) => onChange(e.target.value.replace(/\D/g, ""))}
+          onChange={(e) => {
+            const digits = e.target.value.replace(/\D/g, "").slice(0, 10);
+            onChange(Number(digits) > MAX_NUMBER ? String(MAX_NUMBER) : digits);
+          }}
           className={cn("num text-lg font-semibold", suffix && "pr-8")}
         />
         {suffix && <span className="pointer-events-none absolute top-1/2 right-3 -translate-y-1/2 text-sm text-ink-3">{suffix}</span>}
@@ -53,11 +59,14 @@ export function ProductForm({
   product,
   onSaved,
   onCancel,
+  onExisting,
 }: {
   barcode: string;
   product?: Product;
   onSaved(p: Product): void;
   onCancel(): void;
+  /** The barcode turned out to exist (e.g. an earlier save half-finished): continue with that product. */
+  onExisting?(p: Product): void;
 }) {
   const editing = Boolean(product);
   const [f, setF] = useState<Fields>({
@@ -114,8 +123,10 @@ export function ProductForm({
         const { data, error } = await sb.from("products").insert({ barcode, ...values }).select().single();
         if (error) {
           if (error.code === "23505") {
-            setError(uz.inventory.barcodeExists);
+            const existing = await findProductByBarcode(sb, barcode, { includeArchived: true });
             setSaving(false);
+            if (existing && onExisting) return onExisting(existing);
+            setError(uz.inventory.barcodeExists);
             return;
           }
           throw error;

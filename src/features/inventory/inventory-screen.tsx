@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { Archive, MoreHorizontal, Pencil, Plus, Search } from "lucide-react";
 import { toast } from "sonner";
 import { useHidScanner } from "@/components/scanner/use-hid-scanner";
@@ -137,9 +138,21 @@ export function InventoryScreen() {
   const visible = useMemo(() => {
     if (!products) return null;
     const q = query.trim().toLowerCase();
-    const filtered = q ? products.filter((p) => p.name.toLowerCase().includes(q) || p.barcode.includes(q)) : products;
+    const filtered = q ? products.filter((p) => p.name.toLowerCase().includes(q) || p.barcode.toLowerCase().includes(q)) : products;
     return [...filtered].sort((a, b) => (sort === "stock" ? a.stock - b.stock : a.name.localeCompare(b.name, "uz")));
   }, [products, query, sort]);
+
+  // Kassa's "Omborga qoʻshish" shortcut arrives with ?barcode=…: open the add flow for it once.
+  const router = useRouter();
+  const pathname = usePathname();
+  const pendingBarcode = useSearchParams().get("barcode");
+  useEffect(() => {
+    if (!pendingBarcode) return;
+    router.replace(pathname);
+    lookupStep(pendingBarcode)
+      .then((step) => setFlow({ n: Date.now(), step }))
+      .catch((e) => toast.error(errorMessage(e)));
+  }, [pendingBarcode, pathname, router]);
 
   // A scan on the page opens the add flow at the right step instead of typing into the search box.
   useHidScanner(
