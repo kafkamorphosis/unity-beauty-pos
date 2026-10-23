@@ -5,14 +5,12 @@ import { formatKg, formatKrw, formatUsd, formatWeight } from "@/lib/domain/money
 import { formatOrderNo } from "@/lib/domain/order-no";
 import { formatOrderTotal } from "@/lib/domain/order-total";
 import { formatPhone } from "@/lib/domain/phone";
+import { orderTypeLabel } from "@/lib/i18n/labels";
 import { uz } from "@/lib/i18n/uz";
 
 // The customer may receive this sheet in their parcel: no cost, profit, seller, or system name.
 export function OrderSheet({ order, qrDataUrl }: { order: OrderWithItems; qrDataUrl: string }) {
-  const typeLabel =
-    order.type === "tekpe" && order.destination
-      ? `${uz.orderType.tekpe} · ${uz.destination[order.destination]}`
-      : uz.orderType.store;
+  const typeLabel = orderTypeLabel(order);
 
   const shipping =
     order.destination === "UZ"

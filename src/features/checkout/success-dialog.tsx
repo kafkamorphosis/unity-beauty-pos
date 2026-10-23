@@ -7,6 +7,7 @@ import type { Order } from "@/lib/database.types";
 import { formatOrderNo } from "@/lib/domain/order-no";
 import { formatOrderTotal } from "@/lib/domain/order-total";
 import { printOrder } from "@/features/print/print-order";
+import { orderTypeLabel } from "@/lib/i18n/labels";
 import { uz } from "@/lib/i18n/uz";
 
 export function SuccessDialog({ order, onNewOrder }: { order: Order | null; onNewOrder(): void }) {
@@ -22,10 +23,7 @@ export function SuccessDialog({ order, onNewOrder }: { order: Order | null; onNe
             <div className="border-b border-ink px-4 py-5 text-center">
               <p className="monument text-[4.5rem] leading-none">{formatOrderNo(order.order_no)}</p>
               <DialogDescription className="mt-2 text-sm text-ink-2">
-                {order.type === "tekpe" && order.destination
-                  ? `${uz.orderType.tekpe} · ${uz.destination[order.destination]}`
-                  : uz.orderType.store}{" "}
-                · {uz.payment[order.payment_method]}
+                {orderTypeLabel(order)} · {uz.payment[order.payment_method]}
               </DialogDescription>
               <p className="monument mt-3 text-3xl">{formatOrderTotal(order)}</p>
             </div>

@@ -16,3 +16,14 @@ export function formatDateTime(iso: string): string {
   );
   return `${parts.day}.${parts.month}.${parts.year} ${parts.hour}:${parts.minute}`;
 }
+
+// Korea has no daylight saving time, so a Seoul day is always [00:00+09:00, next 00:00+09:00).
+export function seoulDayStart(ymd: string): string {
+  return `${ymd}T00:00:00+09:00`;
+}
+
+export function seoulDayEndExclusive(ymd: string): string {
+  const d = new Date(`${ymd}T00:00:00Z`);
+  d.setUTCDate(d.getUTCDate() + 1);
+  return seoulDayStart(d.toISOString().slice(0, 10));
+}
