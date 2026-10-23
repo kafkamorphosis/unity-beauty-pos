@@ -7,12 +7,13 @@ import { LogOut, WifiOff } from "lucide-react";
 import { supabaseBrowser } from "@/lib/supabase/client";
 import { uz } from "@/lib/i18n/uz";
 import { cn } from "@/lib/utils";
-import { isActive, type NavItem } from "./nav-items";
+import { NAV, isActive, type NavKey } from "./nav-items";
 import { useOnline } from "./use-online";
 
 type ShellUser = { fullName: string; role: "admin" | "owner" | "seller" };
 
-export function AppShell({ nav, user, children }: { nav: NavItem[]; user: ShellUser; children: React.ReactNode }) {
+export function AppShell({ navKey, user, children }: { navKey: NavKey; user: ShellUser; children: React.ReactNode }) {
+  const nav = NAV[navKey];
   const pathname = usePathname();
   const router = useRouter();
   const online = useOnline();
