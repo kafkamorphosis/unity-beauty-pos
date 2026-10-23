@@ -153,6 +153,9 @@
   .caption {
     @apply block text-caption font-semibold tracking-[0.06em] text-ink-3 uppercase;
   }
+  th.caption {
+    display: table-cell;
+  }
   /* Monumental figure: totals, order numbers. Condensed bold, tabular. */
   .monument {
     font-stretch: 72%;

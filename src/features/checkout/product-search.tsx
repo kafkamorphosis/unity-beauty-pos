@@ -88,13 +88,18 @@ export const ProductSearch = forwardRef<
         onBlur={() => setTimeout(() => setOpen(false), 150)}
         onFocus={() => results.length > 0 && setOpen(true)}
         placeholder={uz.checkout.searchPlaceholder}
+        aria-label={uz.checkout.searchPlaceholder}
+        aria-keyshortcuts="F2"
         role="combobox"
         aria-expanded={showList}
         aria-controls={listId}
         aria-activedescendant={showList && results[active] ? `${listId}-${results[active].id}` : undefined}
         autoComplete="off"
-        className="h-11 pl-9 text-base"
+        className="h-11 pl-9 text-base lg:pr-12"
       />
+      <kbd className="pointer-events-none absolute top-1/2 right-3 hidden -translate-y-1/2 rounded-sm border border-input px-1.5 text-xs font-semibold text-ink-3 lg:block">
+        F2
+      </kbd>
       {showList && (
         <ul
           id={listId}

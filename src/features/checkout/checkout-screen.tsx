@@ -140,13 +140,15 @@ export function CheckoutScreen() {
       else toast.error(errorMessage(error));
       return;
     }
+    // The order exists now: drop the cart and its request key right away, so leaving Kassa
+    // without pressing "Yangi buyurtma" can't resubmit (and silently return) this order.
+    finishOrder();
     setTekpeOpen(false);
     setSheetOpen(false);
     setSuccess(data);
   }
 
   function newOrder() {
-    finishOrder();
     setSuccess(null);
     setCustomerState((s) => ({ ...EMPTY_CUSTOMER, payment: s.payment }));
     setLookup(null);
@@ -214,7 +216,7 @@ export function CheckoutScreen() {
           </div>
         ) : (
           <>
-            <div className="hidden grid-cols-[2rem_2.75rem_minmax(0,1fr)_7rem_5rem_8rem_7.5rem_2.5rem] gap-3 border-b border-ink bg-paper px-3 py-1.5 md:grid">
+            <div className="hidden grid-cols-[2rem_2.75rem_minmax(0,1fr)_7rem_5rem_8rem_7.5rem_2.5rem] gap-3 border-b border-ink bg-paper px-3 py-1.5 xl:grid">
               <span className="caption">{uz.sheet.no}</span>
               <span />
               <span className="caption">{uz.sheet.product}</span>

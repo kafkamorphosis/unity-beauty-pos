@@ -32,7 +32,7 @@
 }
 
 .sheet-logo {
-  filter: grayscale(1) contrast(1.2);
+  filter: grayscale(1) brightness(0.55) contrast(1.6);
 }
 
 @media screen and (max-width: 900px) {

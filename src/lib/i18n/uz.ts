@@ -113,7 +113,7 @@ export const uz = {
   },
   checkout: {
     title: "Kassa",
-    searchPlaceholder: "Mahsulot nomi yoki shtrix-kod (F2)",
+    searchPlaceholder: "Mahsulot nomi yoki shtrix-kod",
     emptyTitle: "Shtrix-kodni skanerlang",
     emptyHint: "yoki mahsulotni nomi boʻyicha qidiring",
     notFound: "Mahsulot topilmadi",
