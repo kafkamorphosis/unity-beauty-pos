@@ -11,6 +11,7 @@ export type OrderWithItems = Order & {
   items: OrderItem[];
   customer: { name: string | null; phone: string } | null;
   seller: Person;
+  approvedBy: Person;
   readyBy: Person;
   pickedUpBy: Person;
   cancelledBy: Person;
@@ -21,6 +22,7 @@ const ORDER_WITH_ITEMS = [
   "items:order_items(*)",
   "customer:customers(name, phone)",
   "seller:profiles!orders_seller_id_fkey(full_name)",
+  "approvedBy:profiles!orders_approved_by_fkey(full_name)",
   "readyBy:profiles!orders_ready_by_fkey(full_name)",
   "pickedUpBy:profiles!orders_picked_up_by_fkey(full_name)",
   "cancelledBy:profiles!orders_cancelled_by_fkey(full_name)",

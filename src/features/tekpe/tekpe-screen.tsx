@@ -19,11 +19,12 @@ import { formatPhone } from "@/lib/domain/phone";
 import { supabaseBrowser } from "@/lib/supabase/client";
 import { uz } from "@/lib/i18n/uz";
 import { cn } from "@/lib/utils";
+import { ApproveActions } from "@/features/orders/approve-actions";
 import { ReadyScanDialog } from "./ready-scan-dialog";
 
-type Tab = "new" | "ready" | "picked_up";
+type Tab = "pending" | "new" | "ready" | "picked_up";
 const PAGE = 100;
-const TABS: Tab[] = ["new", "ready", "picked_up"];
+const TABS: Tab[] = ["pending", "new", "ready", "picked_up"];
 
 async function countStatus(status: Tab): Promise<number> {
   const { count } = await supabaseBrowser()
@@ -36,6 +37,7 @@ async function countStatus(status: Tab): Promise<number> {
 
 export function TekpeScreen() {
   const [tab, setTab] = useState<Tab>("new");
+  const [autoTab, setAutoTab] = useState(true);
   const [data, setData] = useState<{ tab: Tab; rows: OrderListRow[] } | null>(null);
   const [counts, setCounts] = useState<Record<Tab, number> | null>(null);
   const [selected, setSelected] = useState<Set<string>>(new Set());
@@ -56,7 +58,9 @@ export function TekpeScreen() {
         ]);
         if (cancelled) return;
         setData({ tab, rows });
-        setCounts({ new: c[0], ready: c[1], picked_up: c[2] });
+        setCounts({ pending: c[0], new: c[1], ready: c[2], picked_up: c[3] });
+        // Open on the pending tab while seller orders wait, until the manager picks a tab themselves.
+        if (autoTab && c[0] > 0 && tab !== "pending") setTab("pending");
       } catch (e) {
         if (!cancelled) toast.error(errorMessage(e));
       }
@@ -64,7 +68,7 @@ export function TekpeScreen() {
     return () => {
       cancelled = true;
     };
-  }, [tab, version, limit]);
+  }, [tab, version, limit, autoTab]);
 
   useEffect(() => {
     let timer: ReturnType<typeof setTimeout> | undefined;
@@ -109,7 +113,7 @@ export function TekpeScreen() {
       </PageHeader>
 
       <div className="waybill">
-        <div role="tablist" aria-label={uz.tekpe.title} className="grid grid-cols-3 border-b border-ink">
+        <div role="tablist" aria-label={uz.tekpe.title} className="grid grid-cols-2 border-b border-ink sm:grid-cols-4 max-sm:[&>*:nth-child(-n+2)]:border-b max-sm:[&>*:nth-child(3)]:border-l-0">
           {TABS.map((t, i) => (
             <button
               key={t}
@@ -117,6 +121,7 @@ export function TekpeScreen() {
               type="button"
               aria-selected={tab === t}
               onClick={() => {
+                setAutoTab(false);
                 setTab(t);
                 setLimit(PAGE);
                 setSelected(new Set());
@@ -134,6 +139,8 @@ export function TekpeScreen() {
             </button>
           ))}
         </div>
+
+        {tab === "pending" && <p className="border-b border-ink bg-warn-soft px-3 py-2 text-sm text-warn">{uz.tekpe.pendingHint}</p>}
 
         {tab === "ready" && rows && rows.length > 0 && (
           <div className="flex items-center gap-3 border-b border-ink bg-paper px-3 py-2">
@@ -185,6 +192,7 @@ export function TekpeScreen() {
                   <p className="num text-xs text-ink-3">
                     {o.customer ? formatPhone(o.customer.phone) : ""} · {formatDateTime(o.created_at)}
                   </p>
+                  {tab === "pending" && o.seller && <p className="text-xs font-semibold text-ink-2">{uz.tekpe.soldBy(o.seller.full_name)}</p>}
                 </div>
                 <span className="rounded-sm border border-ink px-2 py-0.5 text-xs font-bold uppercase">
                   {o.destination ? uz.destination[o.destination] : ""}
@@ -194,9 +202,13 @@ export function TekpeScreen() {
                 </span>
                 <span className="num w-36 text-right font-bold">{formatOrderTotal(o)}</span>
                 <div className="flex gap-1.5">
-                  <Button variant="outline" size="icon-sm" onClick={() => printOrder(o.id)} aria-label={`${uz.common.print}: ${formatOrderNo(o.order_no)}`}>
-                    <Printer aria-hidden />
-                  </Button>
+                  {tab === "pending" ? (
+                    <ApproveActions order={o} onDone={reload} />
+                  ) : (
+                    <Button variant="outline" size="icon-sm" onClick={() => printOrder(o.id)} aria-label={`${uz.common.print}: ${formatOrderNo(o.order_no)}`}>
+                      <Printer aria-hidden />
+                    </Button>
+                  )}
                   {tab === "new" && (
                     <Button size="sm" onClick={() => move([o.id], "ready")} disabled={busy}>
                       <Check aria-hidden />

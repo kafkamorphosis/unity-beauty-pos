@@ -22,7 +22,7 @@ import { supabaseBrowser } from "@/lib/supabase/client";
 import { uz } from "@/lib/i18n/uz";
 
 const PAGE_SIZE = 50;
-const STATUSES: OrderStatus[] = ["completed", "new", "ready", "picked_up", "cancelled"];
+const STATUSES: OrderStatus[] = ["completed", "pending", "new", "ready", "picked_up", "cancelled"];
 
 function readFilters(sp: URLSearchParams): OrderFilters {
   return {

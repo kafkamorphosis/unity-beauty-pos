@@ -1,24 +1,29 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { countLowStock } from "@/lib/data/notifications";
+import type { SupabaseClient } from "@supabase/supabase-js";
+import type { Database } from "@/lib/database.types";
 import { supabaseBrowser } from "@/lib/supabase/client";
 
-// Live count for the nav badge: product changes on any device, reconnects and window focus refresh it.
-export function useLowStockCount(enabled: boolean): number | null {
-  const [count, setCount] = useState<number | null>(null);
+// Live count for a nav badge: changes to `table` on any device, reconnects and window focus refresh it.
+export function useLiveCount(
+  enabled: boolean,
+  table: "products" | "orders",
+  count: (sb: SupabaseClient<Database>) => Promise<number>,
+): number | null {
+  const [value, setValue] = useState<number | null>(null);
 
   useEffect(() => {
     if (!enabled) return;
     const sb = supabaseBrowser();
     let timer: ReturnType<typeof setTimeout> | undefined;
     const refresh = () =>
-      countLowStock(sb)
-        .then(setCount)
+      count(sb)
+        .then(setValue)
         .catch(() => {});
     const channel = sb
-      .channel("low-stock-badge")
-      .on("postgres_changes", { event: "*", schema: "public", table: "products" }, () => {
+      .channel(`badge-${table}`)
+      .on("postgres_changes", { event: "*", schema: "public", table }, () => {
         clearTimeout(timer);
         timer = setTimeout(refresh, 400);
       })
@@ -34,7 +39,7 @@ export function useLowStockCount(enabled: boolean): number | null {
       document.removeEventListener("visibilitychange", onFocus);
       sb.removeChannel(channel);
     };
-  }, [enabled]);
+  }, [enabled, table, count]);
 
-  return enabled ? count : null;
+  return enabled ? value : null;
 }

@@ -2,12 +2,15 @@ import { Bell, Boxes, ChartColumn, Contact, ReceiptText, ScanBarcode, Settings, 
 import type { NavKey } from "@/lib/auth/home";
 import { uz } from "@/lib/i18n/uz";
 
+export type BadgeKind = "lowStock" | "pending";
+export type BadgeCounts = Record<BadgeKind, number | null>;
+
 export type NavItem = {
   href: string;
   label: string;
   icon: LucideIcon;
-  /** Shows the live low-stock count. */
-  badge?: "lowStock";
+  /** Live counts shown on the item, added up. */
+  badge?: BadgeKind[];
   /** On phones this item lives in the "Boshqa" sheet instead of the bottom bar. */
   more?: boolean;
 };
@@ -19,10 +22,10 @@ export const NAV: Record<NavKey, NavItem[]> = {
     { href: "/", label: uz.nav.checkout, icon: ScanBarcode },
     { href: "/ombor", label: uz.nav.inventory, icon: Boxes },
     { href: "/buyurtmalar", label: uz.nav.orders, icon: ReceiptText },
-    { href: "/tekpe", label: uz.nav.tekpe, icon: Truck },
+    { href: "/tekpe", label: uz.nav.tekpe, icon: Truck, badge: ["pending"] },
     { href: "/mijozlar", label: uz.nav.customers, icon: Contact, more: true },
     { href: "/statistika", label: uz.nav.analytics, icon: ChartColumn, more: true },
-    { href: "/bildirishnomalar", label: uz.nav.notifications, icon: Bell, badge: "lowStock", more: true },
+    { href: "/bildirishnomalar", label: uz.nav.notifications, icon: Bell, badge: ["lowStock", "pending"], more: true },
   ],
   seller: [
     { href: "/sotuv", label: uz.nav.sell, icon: ShoppingBag },
@@ -34,6 +37,12 @@ export const NAV: Record<NavKey, NavItem[]> = {
     { href: "/admin/sozlamalar", label: uz.nav.settings, icon: Settings },
   ],
 };
+
+// Counts still loading are left out; nothing loaded yet shows no badge.
+export function badgeCount(item: Pick<NavItem, "badge">, counts: BadgeCounts): number | null {
+  const loaded = (item.badge ?? []).map((k) => counts[k]).filter((n): n is number => n !== null);
+  return loaded.length ? loaded.reduce((a, b) => a + b, 0) : null;
+}
 
 export function isActive(pathname: string, href: string): boolean {
   if (href === "/" || href === "/admin") return pathname === href;

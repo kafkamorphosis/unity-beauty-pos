@@ -6,11 +6,12 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { LogOut, MoreHorizontal, WifiOff } from "lucide-react";
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "@/components/ui/sheet";
-import { useLowStockCount } from "@/features/notifications/use-low-stock-count";
+import { useLiveCount } from "@/features/notifications/use-live-count";
+import { countLowStock, countPending } from "@/lib/data/notifications";
 import { supabaseBrowser } from "@/lib/supabase/client";
 import { uz } from "@/lib/i18n/uz";
 import { cn } from "@/lib/utils";
-import { NAV, isActive, type NavItem, type NavKey } from "./nav-items";
+import { NAV, badgeCount, isActive, type NavItem, type NavKey } from "./nav-items";
 import { useOnline } from "./use-online";
 import type { Role } from "@/lib/auth/home";
 
@@ -36,9 +37,10 @@ export function AppShell({ navKey, user, children }: { navKey: NavKey; user: She
   const pathname = usePathname();
   const router = useRouter();
   const online = useOnline();
-  const lowStock = useLowStockCount(nav.some((i) => i.badge === "lowStock"));
+  const lowStock = useLiveCount(nav.some((i) => i.badge?.includes("lowStock")), "products", countLowStock);
+  const pending = useLiveCount(nav.some((i) => i.badge?.includes("pending")), "orders", countPending);
   const [moreOpen, setMoreOpen] = useState(false);
-  const badgeFor = (item: NavItem) => (item.badge === "lowStock" ? lowStock : null);
+  const badgeFor = (item: NavItem) => badgeCount(item, { lowStock, pending });
 
   const barItems = nav.filter((i) => !i.more);
   const moreItems = nav.filter((i) => i.more);

@@ -19,6 +19,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
+import { ApproveActions } from "@/features/orders/approve-actions";
 import { printOrder } from "@/features/print/print-order";
 import type { OrderWithItems } from "@/lib/data/orders";
 import { formatDateTime } from "@/lib/domain/dates";
@@ -57,6 +58,7 @@ export function OrderDetail({ order }: { order: OrderWithItems }) {
 
   const timeline = [
     { at: order.created_at, text: uz.orders.createdBy(order.seller?.full_name ?? "—") },
+    order.approved_at && { at: order.approved_at, text: uz.orders.approvedBy(order.approvedBy?.full_name ?? "—") },
     order.ready_at && { at: order.ready_at, text: uz.orders.readyBy(order.readyBy?.full_name ?? "—") },
     order.picked_up_at && { at: order.picked_up_at, text: uz.orders.pickedBy(order.pickedUpBy?.full_name ?? "—") },
     order.cancelled_at && { at: order.cancelled_at, text: uz.orders.cancelledBy(order.cancelledBy?.full_name ?? "—") },
@@ -72,16 +74,19 @@ export function OrderDetail({ order }: { order: OrderWithItems }) {
           </Link>
         </Button>
         <div className="flex gap-2">
-          {order.status !== "cancelled" && (
+          {order.status === "pending" && <ApproveActions order={order} onDone={() => router.refresh()} size="default" />}
+          {order.status !== "cancelled" && order.status !== "pending" && (
             <Button variant="destructive" onClick={() => setConfirming(true)}>
               <Ban aria-hidden />
               {uz.orders.cancel}
             </Button>
           )}
-          <Button onClick={() => printOrder(order.id)}>
-            <Printer aria-hidden />
-            {uz.common.print}
-          </Button>
+          {order.status !== "pending" && (
+            <Button onClick={() => printOrder(order.id)}>
+              <Printer aria-hidden />
+              {uz.common.print}
+            </Button>
+          )}
         </div>
       </div>
 

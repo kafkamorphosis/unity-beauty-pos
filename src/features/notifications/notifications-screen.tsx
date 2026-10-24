@@ -11,7 +11,13 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { RestockPanel } from "@/features/inventory/restock-panel";
 import { StockBar } from "@/features/inventory/stock-stepper";
 import type { Product } from "@/lib/database.types";
-import { listLowStock } from "@/lib/data/notifications";
+import Link from "next/link";
+import { ApproveActions } from "@/features/orders/approve-actions";
+import { listLowStock, listPending, type PendingOrder } from "@/lib/data/notifications";
+import { formatDateTime } from "@/lib/domain/dates";
+import { formatOrderNo } from "@/lib/domain/order-no";
+import { formatOrderTotal } from "@/lib/domain/order-total";
+import { formatPhone } from "@/lib/domain/phone";
 import { errorMessage } from "@/lib/domain/errors";
 import { supabaseBrowser } from "@/lib/supabase/client";
 import { uz } from "@/lib/i18n/uz";
@@ -19,6 +25,7 @@ import { cn } from "@/lib/utils";
 
 export function NotificationsScreen() {
   const [rows, setRows] = useState<Product[] | null>(null);
+  const [pending, setPending] = useState<PendingOrder[] | null>(null);
   const [restocking, setRestocking] = useState<Product | null>(null);
 
   const refresh = useCallback(() => {
@@ -26,6 +33,28 @@ export function NotificationsScreen() {
       .then(setRows)
       .catch((e) => toast.error(errorMessage(e)));
   }, []);
+  const refreshPending = useCallback(() => {
+    listPending(supabaseBrowser())
+      .then(setPending)
+      .catch((e) => toast.error(errorMessage(e)));
+  }, []);
+
+  useEffect(() => {
+    let timer: ReturnType<typeof setTimeout> | undefined;
+    const channel = supabaseBrowser()
+      .channel("pending-list")
+      .on("postgres_changes", { event: "*", schema: "public", table: "orders" }, () => {
+        clearTimeout(timer);
+        timer = setTimeout(refreshPending, 300);
+      })
+      .subscribe((status) => {
+        if (status === "SUBSCRIBED") refreshPending();
+      });
+    return () => {
+      clearTimeout(timer);
+      supabaseBrowser().removeChannel(channel);
+    };
+  }, [refreshPending]);
 
   useEffect(() => {
     let timer: ReturnType<typeof setTimeout> | undefined;
@@ -47,6 +76,31 @@ export function NotificationsScreen() {
   return (
     <>
       <PageHeader title={uz.notifications.title} />
+      {pending && pending.length > 0 && (
+        <section className="waybill mb-4">
+          <h2 className="border-b border-ink bg-warn-soft px-3 py-2 text-base font-bold text-warn">
+            {uz.notifications.pendingTitle} · <span className="num">{pending.length}</span>
+          </h2>
+          <ul>
+            {pending.map((o) => (
+              <li key={o.id} className="flex flex-wrap items-center gap-x-4 gap-y-2 border-b border-rule-soft px-3 py-3 last:border-0">
+                <Link href={`/buyurtmalar/${o.id}`} className="monument w-28 text-2xl hover:underline">
+                  {formatOrderNo(o.order_no)}
+                </Link>
+                <div className="min-w-40 flex-1">
+                  <p className="font-semibold">{o.customer?.name ?? "—"}</p>
+                  <p className="num text-xs text-ink-3">
+                    {o.customer ? formatPhone(o.customer.phone) : ""} · {formatDateTime(o.created_at)}
+                  </p>
+                  {o.seller && <p className="text-xs font-semibold text-ink-2">{uz.tekpe.soldBy(o.seller.full_name)}</p>}
+                </div>
+                <span className="num w-36 text-right font-bold">{formatOrderTotal({ ...o, shipping_usd: Number(o.shipping_usd) })}</span>
+                <ApproveActions order={o} onDone={refreshPending} />
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
       <section className="waybill">
         <h2 className="border-b border-ink px-3 py-2 text-base font-bold">{uz.notifications.lowTitle}</h2>
         {rows === null ? (
