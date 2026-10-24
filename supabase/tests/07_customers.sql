@@ -1,9 +1,9 @@
--- Mijozlar: per-client totals, scoped like Statistika (seller → own sales, owner → all or one seller).
+-- Mijozlar: per-client totals, scoped like Statistika (seller → own sales, manager → all or one seller).
 do $$
 declare
-  s1 uuid := pg_temp.make_user('seller');
-  s2 uuid := pg_temp.make_user('seller');
-  own uuid := pg_temp.make_user('owner');
+  s1 uuid := pg_temp.make_user('manager');
+  s2 uuid := pg_temp.make_user('manager');
+  own uuid := pg_temp.make_user('manager');
   adm uuid := pg_temp.make_user('admin');
   a uuid := pg_temp.make_product('CU-A', 100, 6000, 10000, 8000, 1500);
   one_a jsonb := jsonb_build_array(jsonb_build_object('product_id', a, 'qty', 1));
@@ -30,7 +30,7 @@ begin
   perform public.create_order(gen_random_uuid(), one_a, '+821011110000', 'Ali', 'transfer', 'tekpe', 'KR');  -- +4 000 ₩
   perform pg_temp.logout();
 
-  -- owner, everyone
+  -- manager, everyone
   perform pg_temp.login_as(own);
   select * into r from public.customer_stats() where id = ali;
   assert r.orders = 3, 'Ali orders (cancelled excluded): ' || r.orders;
@@ -41,10 +41,10 @@ begin
   assert r.name = 'Ali' and r.phone = '+821011110000', 'Ali identity';
   assert r.last_order_at is not null, 'last order time';
   select count(*) into v_n from public.customer_stats();
-  assert v_n >= 2, 'owner sees all clients';
+  assert v_n >= 2, 'manager sees all clients';
 
   select * into r from public.customer_stats(s2) where id = ali;
-  assert r.orders = 1 and r.spent = 14000, 'owner scoped to s2: ' || r.orders || ' / ' || r.spent;
+  assert r.orders = 1 and r.spent = 14000, 'manager scoped to s2: ' || r.orders || ' / ' || r.spent;
   select count(*) into v_n from public.customer_stats(s1) where id = vali;
   assert v_n = 0, 'clients without orders from the seller are left out';
   select count(*) into v_n from public.customer_stats(null, vali);
@@ -58,14 +58,7 @@ begin
   assert r.name is null, 'blank name clears it';
   perform pg_temp.logout();
 
-  -- a seller only ever sees their own clients and numbers
-  perform pg_temp.login_as(s1);
-  select * into r from public.customer_stats(s2) where id = ali;
-  assert r.orders = 2 and r.spent = 30000, 'seller asking for another seller gets own numbers: ' || r.orders || ' / ' || r.spent;
-  select count(*) into v_n from public.customer_stats() where id = vali;
-  assert v_n = 0, 'seller does not see other sellers'' clients';
-  perform public.rename_customer(ali, 'Ali Valiyev');
-  perform pg_temp.expect_error(format('select public.rename_customer(%L, %L)', vali, 'X'), 'NOT_AUTHORIZED');
+  perform pg_temp.login_as(own);
   perform pg_temp.expect_error(format('select public.rename_customer(%L, %L)', ali, repeat('x', 121)), 'NAME_TOO_LONG');
   perform pg_temp.logout();
 

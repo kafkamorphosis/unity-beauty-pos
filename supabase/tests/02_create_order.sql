@@ -5,7 +5,7 @@
 -- store order: totals, snapshots, stock, movements
 do $$
 declare
-  v_seller uuid := pg_temp.make_user('seller');
+  v_mgr uuid := pg_temp.make_user('manager');
   a uuid := pg_temp.make_product('CO-A1', 5, 6000, 10000, 8000, 250);
   b uuid := pg_temp.make_product('CO-B1', 1, 12000, 20000, 15000, 500);
   items jsonb := jsonb_build_array(
@@ -14,7 +14,7 @@ declare
   o public.orders;
   v_n int;
 begin
-  perform pg_temp.login_as(v_seller);
+  perform pg_temp.login_as(v_mgr);
   select * into o from public.create_order(gen_random_uuid(), items, null, null, 'cash', 'store', null);
   assert o.status = 'completed', 'store order completed';
   assert o.item_count = 5 and o.line_count = 2, 'counts';
@@ -22,7 +22,7 @@ begin
   assert o.subtotal = 65000, 'subtotal ' || o.subtotal;
   assert o.cost_total = 48000, 'cost ' || o.cost_total;
   assert o.shipping_krw = 0 and o.shipping_usd = 0 and o.shipping_kg = 0, 'no shipping';
-  assert o.seller_id = v_seller, 'seller';
+  assert o.seller_id = v_mgr, 'seller';
   assert o.customer_id is null, 'no customer';
   assert o.qr_token ~ '^[A-HJ-NP-Z2-9]{10}$', 'qr token format ' || o.qr_token;
   assert o.order_no > 0, 'order no';
@@ -43,7 +43,7 @@ end $$;
 -- tekpe shipping, customers, idempotency, duplicate lines
 do $$
 declare
-  v_seller uuid := pg_temp.make_user('seller');
+  v_mgr uuid := pg_temp.make_user('manager');
   a uuid := pg_temp.make_product('CO-A2', 50, 6000, 10000, 8000, 250);
   b uuid := pg_temp.make_product('CO-B2', 50, 12000, 20000, 15000, 500);
   items jsonb := jsonb_build_array(
@@ -55,7 +55,7 @@ declare
   v_n int;
   v_name text;
 begin
-  perform pg_temp.login_as(v_seller);
+  perform pg_temp.login_as(v_mgr);
 
   select * into o from public.create_order(gen_random_uuid(), items, '+821012345678', 'Dilnoza', 'card', 'tekpe', 'UZ');
   assert o.status = 'new', 'tekpe starts new';
@@ -96,9 +96,9 @@ end $$;
 -- validation and authorization
 do $$
 declare
-  v_seller uuid := pg_temp.make_user('seller');
+  v_mgr uuid := pg_temp.make_user('manager');
   v_admin uuid := pg_temp.make_user('admin');
-  v_inactive uuid := pg_temp.make_user('seller', false);
+  v_inactive uuid := pg_temp.make_user('manager', false);
   a uuid := pg_temp.make_product('CO-A3', 5, 6000, 10000, 8000, 250);
   z uuid := pg_temp.make_product('CO-Z3', 5, 1, 1, 1, 1);
   ok text;
@@ -107,7 +107,7 @@ begin
   update public.products set is_archived = true where id = z;
   ok := format('jsonb_build_array(jsonb_build_object(''product_id'', %L::uuid, ''qty'', 1, ''is_wholesale'', false))', a);
 
-  perform pg_temp.login_as(v_seller);
+  perform pg_temp.login_as(v_mgr);
   perform pg_temp.expect_error(format(call, ok, 'null', 'null', 'tekpe', 'null'), 'TEKPE_NEEDS_DESTINATION');
   perform pg_temp.expect_error(format(call, ok, 'null', '''Ali''', 'tekpe', '''KR'''), 'TEKPE_NEEDS_CUSTOMER');
   perform pg_temp.expect_error(format(call, ok, '''+821012345678''', ''' ''', 'tekpe', '''KR'''), 'TEKPE_NEEDS_CUSTOMER');

@@ -1,13 +1,13 @@
 do $$
 declare
-  v_seller uuid := pg_temp.make_user('seller');
+  v_mgr uuid := pg_temp.make_user('manager');
   v_admin uuid := pg_temp.make_user('admin');
   a uuid := pg_temp.make_product('ST-A', 0, 6000, 10000, 8000, 250);
   neg uuid := pg_temp.make_product('ST-NEG', -3, 1, 1, 1, 1);
   p public.products;
   v_n int;
 begin
-  perform pg_temp.login_as(v_seller);
+  perform pg_temp.login_as(v_mgr);
   select * into p from public.restock_product(a, 10, 6500);
   assert p.stock = 10 and p.cost_price = 6500, 'restock with cost';
   select count(*) into v_n from public.stock_movements where product_id = a and kind = 'restock' and qty_change = 10 and cost_price = 6500;
@@ -34,7 +34,7 @@ begin
   -- stepper: relative change applied to the current value, never an overwrite
   perform pg_temp.logout();
   update public.products set stock = 35 where id = a;  -- another device sold 5 meanwhile
-  perform pg_temp.login_as(v_seller);
+  perform pg_temp.login_as(v_mgr);
   select * into p from public.change_stock(a, 10);
   assert p.stock = 45, 'delta +10 applies to the current value: got ' || p.stock;
   select * into p from public.change_stock(a, -50);

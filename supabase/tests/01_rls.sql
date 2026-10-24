@@ -1,19 +1,20 @@
 do $$
 declare
-  v_seller uuid := pg_temp.make_user('seller');
+  v_mgr uuid := pg_temp.make_user('manager');
   v_admin uuid := pg_temp.make_user('admin');
-  v_inactive uuid := pg_temp.make_user('seller', false);
+  v_inactive uuid := pg_temp.make_user('manager', false);
   v_n int;
+  v_base bigint := (select cost_value from public.inventory_summary);  -- real stock already in the database
 begin
   perform pg_temp.make_product('RLS-1', 3, 6000, 10000, 8000, 250);
   perform pg_temp.make_product('RLS-2', -2, 12000, 20000, 15000, 500);
 
-  perform pg_temp.login_as(v_seller);
-  select count(*) into v_n from public.products;
-  assert v_n = 2, 'seller sees products';
+  perform pg_temp.login_as(v_mgr);
+  select count(*) into v_n from public.products where barcode like 'RLS-%';
+  assert v_n = 2, 'manager sees products';
   update public.products set name = 'Renamed' where barcode = 'RLS-1';
   get diagnostics v_n = row_count;
-  assert v_n = 1, 'seller can rename a product';
+  assert v_n = 1, 'manager can rename a product';
   perform pg_temp.expect_error('update public.products set stock = 99', 'permission denied');
   perform pg_temp.expect_error('update public.products set barcode = ''X''', 'permission denied');
   perform pg_temp.expect_error(
@@ -22,9 +23,9 @@ begin
   perform pg_temp.expect_error('delete from public.products', 'permission denied');
   update public.app_settings set kr_shipping_krw = 1;
   get diagnostics v_n = row_count;
-  assert v_n = 0, 'seller cannot change settings';
+  assert v_n = 0, 'manager cannot change settings';
   select cost_value into v_n from public.inventory_summary;
-  assert v_n = 18000, 'inventory_summary ignores negative stock: got ' || v_n;
+  assert v_n = v_base + 18000, 'inventory_summary ignores negative stock: got ' || v_n;
   perform pg_temp.logout();
 
   perform pg_temp.login_as(v_admin);
@@ -37,7 +38,7 @@ begin
 
   perform pg_temp.login_as(v_inactive);
   select count(*) into v_n from public.products;
-  assert v_n = 0, 'inactive seller sees nothing';
+  assert v_n = 0, 'inactive manager sees nothing';
   perform pg_temp.logout();
 
   set local role anon;
@@ -83,8 +84,8 @@ begin
   values (v_id, '00000000-0000-0000-0000-000000000000', 'authenticated', 'authenticated', 'rc@unitybeauty.local',
           jsonb_build_object('username', 'rc'), jsonb_build_object('provider', 'email', 'role', 'seller'), now(), now());
   update public.profiles set is_active = false where id = v_id;
-  update auth.users set raw_app_meta_data = raw_app_meta_data || jsonb_build_object('role', 'owner') where id = v_id;
+  update auth.users set raw_app_meta_data = raw_app_meta_data || jsonb_build_object('role', 'manager') where id = v_id;
   select is_active, role into v_active, v_role from public.profiles where id = v_id;
-  assert v_role = 'owner', 'role change applies';
+  assert v_role = 'manager', 'role change applies';
   assert not v_active, 'role change keeps the account disabled';
 end $$;

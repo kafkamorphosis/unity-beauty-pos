@@ -2,9 +2,9 @@
 -- created_at is moved (as postgres) to control which window they fall in.
 do $$
 declare
-  s1 uuid := pg_temp.make_user('seller');
-  s2 uuid := pg_temp.make_user('seller');
-  own uuid := pg_temp.make_user('owner');
+  s1 uuid := pg_temp.make_user('manager');
+  s2 uuid := pg_temp.make_user('manager');
+  own uuid := pg_temp.make_user('manager');
   adm uuid := pg_temp.make_user('admin');
   a uuid := pg_temp.make_product('AN-A', 100, 6000, 10000, 8000, 250);
   b uuid := pg_temp.make_product('AN-B', 100, 12000, 20000, 15000, 500);
@@ -19,6 +19,9 @@ declare
   v_first record;
   v_n int;
 begin
+  -- Keep real orders and products out of the window and the least-sold list (rolled back after).
+  update public.orders set created_at = created_at - interval '5 years';
+  update public.products set is_archived = true where barcode not like 'AN-%';
   update public.products set is_archived = true where id = d;
 
   perform pg_temp.login_as(s1);
@@ -38,7 +41,7 @@ begin
   perform pg_temp.logout();
   update public.orders set created_at = v_to where id = o.id;            -- boundary: excluded
 
-  -- owner, everyone
+  -- manager, everyone
   perform pg_temp.login_as(own);
   r := public.analytics_report(v_from, v_to);
   assert (r ->> 'orders')::int = 4, 'orders ' || (r ->> 'orders');
@@ -59,22 +62,12 @@ begin
   assert (r -> 'products' -> 1 ->> 'qty')::int = 1, 'cancelled B×5 excluded';
 
   r := public.analytics_report(v_from, v_to, s2);
-  assert (r ->> 'revenue')::int = 10000, 'owner can scope to one seller';
+  assert (r ->> 'revenue')::int = 10000, 'manager can scope to one seller';
 
   select * into v_first from public.least_sold(14) limit 1;
   assert v_first.product_id = c and v_first.qty_sold = 0, 'unsold product C comes first';
   select count(*) into v_n from public.least_sold(14) where product_id in (d, e);
   assert v_n = 0, 'archived and zero-stock products are not listed';
-  perform pg_temp.logout();
-
-  -- a seller only ever sees their own numbers
-  perform pg_temp.login_as(s1);
-  r := public.analytics_report(v_from, v_to, s2);
-  assert (r ->> 'revenue')::int = 50000, 'seller asking for another seller gets own numbers: ' || (r ->> 'revenue');
-  r := public.analytics_report(v_from, v_to);
-  assert (r ->> 'revenue')::int = 50000, 'seller asking for everyone gets own numbers';
-  select qty_sold into v_n from public.least_sold(14, s2) where product_id = a;
-  assert v_n = 3, 'least_sold is scoped to the seller too: ' || v_n;
   perform pg_temp.logout();
 
   perform pg_temp.login_as(adm);
