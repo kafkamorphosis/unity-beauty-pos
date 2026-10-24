@@ -38,7 +38,15 @@ node scripts/create-admin.mjs
 
 Then in Supabase → Authentication → Sign In / Providers, turn **off** "Allow new users to sign up". (Even if it stays on, accounts created outside the admin panel get no access.)
 
-Sign in at `/login` with that admin, open **Akkauntlar**, and create the owner and seller accounts. Admins only manage accounts and settings; selling screens are for owner and seller accounts.
+Sign in at `/login` with that admin, open **Akkauntlar**, and create the manager and seller accounts.
+
+| Role | Shown as | Does |
+|---|---|---|
+| `admin` | Root | Accounts and settings only |
+| `manager` | Menejer | The store: Kassa, Ombor, Buyurtmalar, Tekpe (approves seller orders), Mijozlar, Statistika with profit, Bildirishnomalar |
+| `seller` | Sotuvchi | Sotuv (catalog, cart, Tekpe order for approval), Buyurtmalarim, own Statistika without cost |
+
+Seller orders start as *Tasdiq kutilmoqda* and hold no stock; a manager's Tasdiqlash takes the stock and moves them to Yangi.
 
 ## Scripts
 

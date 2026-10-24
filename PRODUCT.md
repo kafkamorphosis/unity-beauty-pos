@@ -30,8 +30,7 @@ Built for one business's exact counter ritual — USB scanner, wholesale ("optom
 - UI language: Uzbek (Latin) only, with correct ʻ (U+02BB) and ʼ (U+02BC). Terms: Kassa, Ombor, Buyurtmalar, Tekpe, Optom, Naqd/Karta/Oʻtkazma.
 - Money in KRW integers (`85 000 ₩`); Uzbekistan shipping in USD (`30 $`); totals for Uzbekistan shown in two parts (`85 000 ₩ + 30 $`).
 - Phones default to Korea (+82) with Uzbekistan (+998) as an option.
-- Roles: admin (accounts/settings only), owner, seller.
-- Phase 2, not yet built: analytics, low-stock notifications + Telegram, Electron desktop app.
+- Roles: root/admin (accounts/settings only), manager (the store, approves seller orders, sees profit), seller (remote Tekpe orders for approval, own sales without cost).
 
 ## Brand Commitments
 
