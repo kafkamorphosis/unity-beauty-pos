@@ -191,7 +191,7 @@ export type Database = {
         Returns: OrderRow;
       };
       seller_catalog: {
-        Args: { p_query?: string | null; p_limit?: number };
+        Args: { p_query?: string | null; p_limit?: number; p_offset?: number };
         Returns: {
           id: string;
           barcode: string;

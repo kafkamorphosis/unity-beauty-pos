@@ -23,10 +23,16 @@ function upcEToUpcA(e: string): string | null {
   return `${ns}${middle}${check}`;
 }
 
-export function isPlausibleBarcode(code: string): boolean {
+// Formats whose last digit is a GTIN check digit. Code 128 and others carry no such digit, so a
+// numeric in-store label must not be checked as if it were an EAN.
+const GTIN_FORMATS = new Set(["ean_13", "ean_8", "upc_a", "upc_e", "itf"]);
+
+/** `format` is the decoder's format name; without one, numeric codes are checked by length. */
+export function isPlausibleBarcode(code: string, format?: string): boolean {
   const c = code.trim();
   if (c.length < 3) return false;
   if (!/^\d+$/.test(c)) return true;
+  if (format !== undefined && !GTIN_FORMATS.has(format)) return true;
   if (c.length === 8) {
     const upcA = upcEToUpcA(c);
     return checkDigitOk(c) || (upcA !== null && checkDigitOk(upcA));
@@ -41,8 +47,8 @@ export function createScanConfirmer({ frames, repeatMs }: { frames: number; repe
   let accepted: string | null = null;
   let acceptedSeen = -Infinity;
 
-  return (code: string, timeMs: number): boolean => {
-    if (!isPlausibleBarcode(code)) {
+  return (code: string, timeMs: number, format?: string): boolean => {
+    if (!isPlausibleBarcode(code, format)) {
       candidate = null;
       count = 0;
       return false;

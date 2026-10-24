@@ -9,6 +9,12 @@ describe("isPlausibleBarcode", () => {
     expect(isPlausibleBarcode("96385075")).toBe(false);
     expect(isPlausibleBarcode("036000291452")).toBe(true); // UPC-A
   });
+  it("only checks digits for EAN/UPC formats", () => {
+    expect(isPlausibleBarcode("2000000000010", "code_128")).toBe(true); // in-store code, no GTIN check digit
+    expect(isPlausibleBarcode("2000000000010", "ean_13")).toBe(false);
+    expect(isPlausibleBarcode("8801234567893", "ean_13")).toBe(true);
+    expect(isPlausibleBarcode("12345678", "code_128")).toBe(true);
+  });
   it("lets other codes through when they look like a code", () => {
     expect(isPlausibleBarcode("ABC-123")).toBe(true);
     expect(isPlausibleBarcode("12")).toBe(false);
@@ -33,6 +39,11 @@ describe("createScanConfirmer", () => {
     const confirm = createScanConfirmer({ frames: 2, repeatMs: 1500 });
     expect(confirm("8801234567890", 0)).toBe(false);
     expect(confirm("8801234567890", 125)).toBe(false);
+  });
+  it("accepts numeric Code 128 labels without a check digit", () => {
+    const confirm = createScanConfirmer({ frames: 2, repeatMs: 1500 });
+    expect(confirm("2000000000010", 0, "code_128")).toBe(false);
+    expect(confirm("2000000000010", 125, "code_128")).toBe(true);
   });
   it("does not repeat while the camera stays on the same code, but does after a pause", () => {
     const confirm = createScanConfirmer({ frames: 2, repeatMs: 1500 });

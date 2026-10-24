@@ -401,7 +401,7 @@ end $$;
 
 -- ── Seller reads ──────────────────────────────────────────────────────────
 
-create function public.seller_catalog(p_query text default null, p_limit integer default 60)
+create function public.seller_catalog(p_query text default null, p_limit integer default 60, p_offset integer default 0)
 returns table (id uuid, barcode text, name text, photo_path text, retail_price integer,
                wholesale_price integer, weight_g integer, stock integer)
 language plpgsql stable security definer set search_path = '' as $$
@@ -415,7 +415,7 @@ begin
   from public.products p
   where not p.is_archived and (v_q is null or p.name ilike '%' || v_q || '%')
   order by p.name
-  limit greatest(1, least(coalesce(p_limit, 60), 200));
+  limit greatest(1, least(coalesce(p_limit, 60), 200)) offset greatest(coalesce(p_offset, 0), 0);
 end $$;
 
 create function public.seller_order_json(o public.orders, p_with_items boolean) returns jsonb
@@ -473,11 +473,11 @@ revoke all on function public.tekpe_alert_text(public.orders) from public, anon,
 revoke all on function public.seller_order_json(public.orders, boolean) from public, anon, authenticated;
 revoke all on function public.submit_seller_order(uuid, jsonb, text, text, public.payment_method, public.destination) from public, anon;
 revoke all on function public.approve_order(uuid) from public, anon;
-revoke all on function public.seller_catalog(text, integer) from public, anon;
+revoke all on function public.seller_catalog(text, integer, integer) from public, anon;
 revoke all on function public.my_orders(integer, integer) from public, anon;
 revoke all on function public.my_order(uuid, uuid) from public, anon;
 grant execute on function public.submit_seller_order(uuid, jsonb, text, text, public.payment_method, public.destination) to authenticated;
 grant execute on function public.approve_order(uuid) to authenticated;
-grant execute on function public.seller_catalog(text, integer) to authenticated;
+grant execute on function public.seller_catalog(text, integer, integer) to authenticated;
 grant execute on function public.my_orders(integer, integer) to authenticated;
 grant execute on function public.my_order(uuid, uuid) to authenticated;

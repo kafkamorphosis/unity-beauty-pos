@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { toast } from "sonner";
 import { PageHeader } from "@/components/shell/page-header";
@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { listMyOrders, type MyOrder } from "@/lib/data/seller";
 import { formatDateTime } from "@/lib/domain/dates";
+import { mergeFresh } from "@/lib/domain/paging";
 import { errorMessage } from "@/lib/domain/errors";
 import { formatOrderNo } from "@/lib/domain/order-no";
 import { formatOrderTotal } from "@/lib/domain/order-total";
@@ -25,16 +26,37 @@ const REFRESH_MS = 30_000;
 
 export function MyOrdersScreen() {
   const [rows, setRows] = useState<MyOrder[] | null>(null);
-  const [limit, setLimit] = useState(PAGE);
+  const [more, setMore] = useState(false);
+  const [loadingMore, setLoadingMore] = useState(false);
   const [filter, setFilter] = useState<OrderStatus | "">("");
+  const loaded = useRef(false);
 
+  // Refreshes only the newest page; older pages the seller loaded stay as they are.
   const load = useCallback(
     () =>
-      listMyOrders(supabaseBrowser(), limit, 0)
-        .then(setRows)
+      listMyOrders(supabaseBrowser(), PAGE, 0)
+        .then((fresh) => {
+          if (!loaded.current) setMore(fresh.length === PAGE);
+          loaded.current = true;
+          setRows((prev) => mergeFresh(prev, fresh));
+        })
         .catch((e) => toast.error(errorMessage(e))),
-    [limit],
+    [],
   );
+
+  async function loadMore() {
+    if (!rows || loadingMore) return;
+    setLoadingMore(true);
+    try {
+      const page = await listMyOrders(supabaseBrowser(), PAGE, rows.length);
+      setRows((prev) => [...(prev ?? []), ...page.filter((o) => !prev?.some((p) => p.id === o.id))]);
+      setMore(page.length === PAGE);
+    } catch (e) {
+      toast.error(errorMessage(e));
+    } finally {
+      setLoadingMore(false);
+    }
+  }
 
   useEffect(() => {
     load();
@@ -70,7 +92,8 @@ export function MyOrdersScreen() {
               )}
             >
               {s ? uz.status[s] : uz.seller.all}
-              <span className="num ml-1.5 opacity-70">{count(s)}</span>
+              {/* Counts are exact only once every order is loaded. */}
+              {!more && <span className="num ml-1.5 opacity-70">{count(s)}</span>}
             </button>
           ))}
         </div>
@@ -108,9 +131,9 @@ export function MyOrdersScreen() {
           </ul>
         )}
 
-        {rows && rows.length >= limit && (
+        {more && (
           <div className="flex justify-center border-t border-ink p-2">
-            <Button variant="outline" size="sm" onClick={() => setLimit((l) => l + PAGE)}>
+            <Button variant="outline" size="sm" onClick={loadMore} disabled={loadingMore}>
               {uz.seller.loadMore}
             </Button>
           </div>

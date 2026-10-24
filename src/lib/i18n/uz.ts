@@ -372,6 +372,8 @@ export const uz = {
     shippingUz: (kg: number, rate: string) => `${kg} kg × ${rate}`,
     total: "Jami",
     optom: "optom",
+    pendingTitle: (no: string) => `${no} hali tasdiqlanmagan`,
+    pendingHint: "Avval buyurtmani tasdiqlang, keyin qogʻozini chop eting.",
     backToOrder: "Buyurtmaga qaytish",
     notFound: "Buyurtma topilmadi",
     cancelledStamp: "BEKOR QILINGAN",

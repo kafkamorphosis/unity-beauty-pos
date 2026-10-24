@@ -26,6 +26,21 @@ export default async function PrintPage({ params, searchParams }: PageProps<"/pr
   const { autoprint } = await searchParams;
   const order = await getOrderWithItems(await supabaseServer(), id).catch(() => null);
   if (!order) notFound();
+  // A pending seller order has taken no stock yet and may still be rejected: no parcel sheet.
+  if (order.status === "pending") {
+    return (
+      <div className="mx-auto max-w-md px-4 py-16 text-center">
+        <p className="text-lg font-bold">{uz.sheet.pendingTitle(formatOrderNo(order.order_no))}</p>
+        <p className="mt-2 text-ink-2">{uz.sheet.pendingHint}</p>
+        <Button asChild variant="outline" className="mt-6">
+          <Link href={`/buyurtmalar/${order.id}`}>
+            <ArrowLeft aria-hidden />
+            {uz.sheet.backToOrder}
+          </Link>
+        </Button>
+      </div>
+    );
+  }
   const qr = await QRCode.toDataURL(order.qr_token, { margin: 1, width: 240, errorCorrectionLevel: "M" });
 
   return (

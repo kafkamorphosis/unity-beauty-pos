@@ -46,8 +46,10 @@ export type MyOrderWithItems = MyOrder & { items: MyOrderItem[] };
 
 const toOrder = <T extends MyOrder>(o: T): T => ({ ...o, shipping_usd: Number(o.shipping_usd) });
 
-export async function sellerCatalog(sb: SB, query: string): Promise<CartProduct[]> {
-  const { data, error } = await sb.rpc("seller_catalog", { p_query: query.trim() || null, p_limit: 120 });
+export const CATALOG_PAGE = 60;
+
+export async function sellerCatalog(sb: SB, query: string, offset = 0): Promise<CartProduct[]> {
+  const { data, error } = await sb.rpc("seller_catalog", { p_query: query.trim() || null, p_limit: CATALOG_PAGE, p_offset: offset });
   if (error) throw error;
   return (data ?? []).map((p) => ({
     id: p.id,

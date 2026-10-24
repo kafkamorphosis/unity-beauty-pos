@@ -100,6 +100,7 @@ export function AddProductFlow({
     setLooking(true);
     try {
       setStep(await lookupStep(barcode));
+      scanFeedback(true);
     } catch (e) {
       toast.error(errorMessage(e));
     } finally {

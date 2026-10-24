@@ -95,6 +95,10 @@ begin
   assert v_n = 0, 'catalog has no cost column';
   select count(*) into v_n from public.seller_catalog('product so-1');
   assert v_n = 1, 'catalog searches names without case';
+  select count(*) into v_n from public.seller_catalog('product so-1', 60, 1);
+  assert v_n = 0, 'catalog pages with an offset';
+  j := public.my_orders(2, 2);
+  assert jsonb_array_length(j) = 2, 'my_orders pages with an offset';
   j := public.my_orders();
   assert jsonb_array_length(j) = 4, 'seller sees their four orders: ' || jsonb_array_length(j);
   assert not exists (select 1 from jsonb_array_elements(j) e where e ? 'cost_total'), 'my_orders has no cost';

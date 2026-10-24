@@ -15,7 +15,7 @@ import type { CustomerState } from "@/features/checkout/customer-panel";
 import { cartFingerprint, resolveRequest, type Payload } from "@/features/checkout/request-key";
 import { TekpeDialog } from "@/features/checkout/tekpe-dialog";
 import { useCart, type CartKeys } from "@/features/checkout/use-cart";
-import { getMyOrder, sellerCatalog, submitSellerOrder } from "@/lib/data/seller";
+import { CATALOG_PAGE, getMyOrder, sellerCatalog, submitSellerOrder } from "@/lib/data/seller";
 import { getShippingRates } from "@/lib/data/settings";
 import type { CartProduct } from "@/lib/domain/cart";
 import { errorMessage } from "@/lib/domain/errors";
@@ -36,7 +36,8 @@ export function SellScreen() {
   const online = useOnline();
   const { lines, dispatch, totals, loadRequest, saveRequest, finishOrder } = useCart(SELLER_CART);
   const [query, setQuery] = useState("");
-  const [result, setResult] = useState<{ q: string; rows: CartProduct[] } | null>(null);
+  const [result, setResult] = useState<{ q: string; rows: CartProduct[]; more: boolean } | null>(null);
+  const [loadingMore, setLoadingMore] = useState(false);
   const [customer, setCustomer] = useState<CustomerState>(EMPTY_CUSTOMER);
   const [rates, setRates] = useState<ShippingRates | null>(null);
   const [fresh, setFresh] = useState<{ id: string; n: number } | null>(null);
@@ -55,7 +56,7 @@ export function SellScreen() {
     let cancelled = false;
     const timer = setTimeout(() => {
       sellerCatalog(supabaseBrowser(), q)
-        .then((rows) => !cancelled && setResult({ q, rows }))
+        .then((rows) => !cancelled && setResult({ q, rows, more: rows.length === CATALOG_PAGE }))
         .catch((e) => !cancelled && toast.error(errorMessage(e)));
     }, q ? 250 : 0);
     return () => {
@@ -63,6 +64,19 @@ export function SellScreen() {
       clearTimeout(timer);
     };
   }, [q]);
+
+  async function loadMore() {
+    if (!result || loadingMore) return;
+    setLoadingMore(true);
+    try {
+      const rows = await sellerCatalog(supabaseBrowser(), result.q, result.rows.length);
+      setResult((r) => (r && r.q === result.q ? { q: r.q, rows: [...r.rows, ...rows], more: rows.length === CATALOG_PAGE } : r));
+    } catch (e) {
+      toast.error(errorMessage(e));
+    } finally {
+      setLoadingMore(false);
+    }
+  }
 
   function add(p: CartProduct) {
     dispatch({ type: "add", product: p });
@@ -187,6 +201,13 @@ export function SellScreen() {
           ) : (
             <div className={loading ? "opacity-60 transition-opacity" : undefined}>
               <CatalogGrid products={products} qtyInCart={qtyInCart} onAdd={add} />
+              {result?.more && (
+                <div className="flex justify-center border-t border-ink p-3">
+                  <Button variant="outline" onClick={loadMore} disabled={loadingMore}>
+                    {uz.seller.loadMore}
+                  </Button>
+                </div>
+              )}
             </div>
           )}
         </div>

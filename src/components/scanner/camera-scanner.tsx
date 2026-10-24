@@ -8,7 +8,7 @@ import { uz } from "@/lib/i18n/uz";
 // No Code 39: decoders "find" it in the bars of EAN-13 labels, and cosmetics never use it.
 const FORMATS = ["ean_13", "ean_8", "upc_a", "upc_e", "code_128", "qr_code"] as const;
 
-type Detector = { detect(source: HTMLVideoElement): Promise<{ rawValue: string }[]> };
+type Detector = { detect(source: HTMLVideoElement): Promise<{ rawValue: string; format?: string }[]> };
 
 async function createDetector(): Promise<Detector> {
   const Native = (globalThis as { BarcodeDetector?: { new (o: { formats: string[] }): Detector; getSupportedFormats(): Promise<string[]> } }).BarcodeDetector;
@@ -67,7 +67,7 @@ export function CameraScanner({
             try {
               const codes = await detector.detect(video);
               const code = codes[0]?.rawValue?.trim();
-              if (code && !stopped && accept(code, performance.now())) {
+              if (code && !stopped && accept(code, performance.now(), codes[0].format)) {
                 handleScan(code);
                 if (!continuous) {
                   handleClose();
