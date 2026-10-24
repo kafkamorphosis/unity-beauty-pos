@@ -13,12 +13,12 @@ export type SessionProfile = {
 // One lookup per request, shared by layouts and pages.
 export const getSessionProfile = cache(async (): Promise<SessionProfile | null> => {
   const sb = await supabaseServer();
-  const { data: auth } = await sb.auth.getUser();
-  if (!auth.user) return null;
+  const { data: auth } = await sb.auth.getClaims();
+  if (!auth?.claims.sub) return null;
   const { data } = await sb
     .from("profiles")
     .select("id, username, full_name, role, is_active")
-    .eq("id", auth.user.id)
+    .eq("id", auth.claims.sub)
     .maybeSingle();
   if (!data || !data.is_active) return null;
   return { id: data.id, username: data.username, fullName: data.full_name, role: data.role };

@@ -2,11 +2,11 @@
 
 import { useEffect, useEffectEvent, useRef, useState } from "react";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { createDeduper } from "@/lib/domain/dedupe";
+import { createScanConfirmer } from "@/lib/domain/scan-confirm";
 import { uz } from "@/lib/i18n/uz";
-import { scanFeedback } from "./feedback";
 
-const FORMATS = ["ean_13", "ean_8", "upc_a", "upc_e", "code_128", "code_39", "qr_code"] as const;
+// No Code 39: decoders "find" it in the bars of EAN-13 labels, and cosmetics never use it.
+const FORMATS = ["ean_13", "ean_8", "upc_a", "upc_e", "code_128", "qr_code"] as const;
 
 type Detector = { detect(source: HTMLVideoElement): Promise<{ rawValue: string }[]> };
 
@@ -43,7 +43,8 @@ export function CameraScanner({
     let stopped = false;
     let stream: MediaStream | null = null;
     let frame = 0;
-    const accept = createDeduper(1500);
+    // Two matching reads in a row, like a hardware scanner; the caller beeps once it knows the result.
+    const accept = createScanConfirmer({ frames: 2, repeatMs: 1500 });
 
     (async () => {
       try {
@@ -61,13 +62,12 @@ export function CameraScanner({
         let last = 0;
         const tick = async (t: number) => {
           if (stopped) return;
-          if (t - last > 125 && video.readyState >= 2) {
+          if (t - last > 90 && video.readyState >= 2) {
             last = t;
             try {
               const codes = await detector.detect(video);
               const code = codes[0]?.rawValue?.trim();
               if (code && !stopped && accept(code, performance.now())) {
-                scanFeedback(true);
                 handleScan(code);
                 if (!continuous) {
                   handleClose();

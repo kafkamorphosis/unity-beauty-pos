@@ -18,9 +18,11 @@ export async function proxy(request: NextRequest) {
       },
     },
   );
-  const { data } = await sb.auth.getUser();
+  // getClaims verifies the JWT locally against the project's published key (no Auth round trip)
+  // and still refreshes an expired session through the cookies above.
+  const { data } = await sb.auth.getClaims();
   const isLogin = request.nextUrl.pathname === "/login";
-  if (!data.user && !isLogin) {
+  if (!data?.claims && !isLogin) {
     const url = request.nextUrl.clone();
     url.pathname = "/login";
     url.search = "";
