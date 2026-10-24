@@ -136,7 +136,7 @@ export function TekpeDialog({
           </p>
         )}
 
-        <div className="flex justify-end gap-2 p-3">
+        <div className="dialog-actions">
           <Button variant="outline" onClick={() => onOpenChange(false)}>
             {uz.common.cancel}
           </Button>

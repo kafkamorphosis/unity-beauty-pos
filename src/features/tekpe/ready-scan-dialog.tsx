@@ -161,7 +161,7 @@ export function ReadyScanDialog({ open, onOpenChange, onChanged }: { open: boole
                 <p className="border-t border-rule-soft bg-warn-soft px-4 py-2 text-sm font-semibold text-warn">{uz.tekpe.alreadyReady}</p>
               )}
               {problem && <p className="border-t border-rule-soft bg-danger-soft px-4 py-2 text-sm font-semibold text-danger">{problem}</p>}
-              <div className="flex justify-end gap-2 p-3">
+              <div className="dialog-actions">
                 <Button variant="outline" onClick={() => setScan(null)}>
                   {uz.common.close}
                 </Button>

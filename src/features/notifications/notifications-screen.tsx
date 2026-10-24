@@ -84,17 +84,17 @@ export function NotificationsScreen() {
           <ul>
             {pending.map((o) => (
               <li key={o.id} className="flex flex-wrap items-center gap-x-4 gap-y-2 border-b border-rule-soft px-3 py-3 last:border-0">
-                <Link href={`/buyurtmalar/${o.id}`} className="monument w-28 text-2xl hover:underline">
+                <Link href={`/buyurtmalar/${o.id}`} className="monument text-2xl hover:underline sm:w-28">
                   {formatOrderNo(o.order_no)}
                 </Link>
-                <div className="min-w-40 flex-1">
+                <div className="min-w-40 flex-1 max-sm:order-last max-sm:basis-full">
                   <p className="font-semibold">{o.customer?.name ?? "—"}</p>
                   <p className="num text-xs text-ink-3">
                     {o.customer ? formatPhone(o.customer.phone) : ""} · {formatDateTime(o.created_at)}
                   </p>
                   {o.seller && <p className="text-xs font-semibold text-ink-2">{uz.tekpe.soldBy(o.seller.full_name)}</p>}
                 </div>
-                <span className="num w-36 text-right font-bold">{formatOrderTotal({ ...o, shipping_usd: Number(o.shipping_usd) })}</span>
+                <span className="num ml-auto text-right font-bold sm:ml-0 sm:w-36">{formatOrderTotal({ ...o, shipping_usd: Number(o.shipping_usd) })}</span>
                 <ApproveActions order={o} onDone={refreshPending} />
               </li>
             ))}

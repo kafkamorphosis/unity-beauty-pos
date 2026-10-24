@@ -28,7 +28,7 @@ function Cell({ label, children, className }: { label: string; children: React.R
   return (
     <div className={cn("cell", className)}>
       <span className="caption">{label}</span>
-      <div className="mt-1">{children}</div>
+      <div className="mt-1 max-sm:mt-0">{children}</div>
     </div>
   );
 }
@@ -88,15 +88,16 @@ export function CustomersScreen({ isManager, meId }: { isManager: boolean; meId:
       {all === null ? (
         <Skeleton className="mb-4 h-24 rounded-lg border border-ink" />
       ) : (
-        <div className="waybill mb-4 grid grid-cols-3 [&>*+*]:border-l [&>*+*]:border-ink">
+        // Phones: one row per total (label left, figure right); wider: three columns.
+        <div className="waybill mb-4 grid sm:grid-cols-3 [&>*+*]:border-t [&>*+*]:border-ink sm:[&>*+*]:border-t-0 sm:[&>*+*]:border-l max-sm:[&>*]:flex max-sm:[&>*]:items-center max-sm:[&>*]:justify-between max-sm:[&>*]:gap-3">
           <Cell label={uz.customers.count}>
-            <span className="monument block text-figure">{all.length}</span>
+            <span className="monument block text-figure max-sm:text-3xl">{all.length}</span>
           </Cell>
           <Cell label={uz.customers.repeat}>
-            <span className="monument block text-figure">{all.filter((c) => c.orders >= 2).length}</span>
+            <span className="monument block text-figure max-sm:text-3xl">{all.filter((c) => c.orders >= 2).length}</span>
           </Cell>
           <Cell label={uz.customers.spentTotal}>
-            <Krw value={all.reduce((s, c) => s + c.spent, 0)} className="monument block text-figure max-sm:text-2xl" />
+            <Krw value={all.reduce((s, c) => s + c.spent, 0)} className="monument block text-figure max-sm:text-3xl" />
           </Cell>
         </div>
       )}

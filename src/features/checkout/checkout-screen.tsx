@@ -308,7 +308,7 @@ export function CheckoutScreen() {
       <aside className="hidden lg:block">{panel}</aside>
 
       {/* Phone/tablet: sticky total strip above the bottom nav opens the panel as a sheet. */}
-      <div className="fixed inset-x-0 bottom-16 z-30 flex items-center gap-3 border-t border-ink bg-cell px-3 py-2 md:bottom-0 lg:hidden">
+      <div className="fixed inset-x-0 bottom-[calc(4rem+env(safe-area-inset-bottom))] z-30 flex items-center gap-3 border-t border-ink bg-cell px-3 py-2 md:bottom-0 lg:hidden">
         <div className="min-w-0 flex-1">
           <span className="caption">
             {uz.checkout.total} · {totals.itemCount} {uz.common.pcs}
@@ -320,7 +320,7 @@ export function CheckoutScreen() {
         </Button>
       </div>
       <Sheet open={sheetOpen} onOpenChange={setSheetOpen}>
-        <SheetContent side="bottom" className="max-h-[92dvh] gap-0 overflow-y-auto border-t border-ink p-0">
+        <SheetContent side="bottom" className="max-h-[92dvh] gap-0 overflow-y-auto border-t border-ink p-0 pb-[env(safe-area-inset-bottom)]">
           <SheetHeader className="border-b border-ink px-4 py-3">
             <SheetTitle>{uz.checkout.title}</SheetTitle>
             <SheetDescription className="sr-only">{uz.checkout.payment}</SheetDescription>

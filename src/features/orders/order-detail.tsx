@@ -97,7 +97,7 @@ export function OrderDetail({ order }: { order: OrderWithItems }) {
           <p className="monument ml-auto text-3xl">{formatOrderTotal(order)}</p>
         </div>
 
-        <div className="grid grid-cols-2 border-b border-ink md:grid-cols-5 [&>*]:border-rule-soft [&>*:not(:last-child)]:border-r">
+        <div className="grid grid-cols-2 border-b border-ink md:grid-cols-5 [&>*]:border-rule-soft [&>*:not(:last-child)]:border-r max-md:[&>*:nth-child(2n)]:border-r-0 max-md:[&>*:nth-child(-n+4)]:border-b">
           <Field label={uz.orders.date}>
             <span className="num">{formatDateTime(order.created_at)}</span>
           </Field>
@@ -110,7 +110,7 @@ export function OrderDetail({ order }: { order: OrderWithItems }) {
           <Field label={uz.orders.seller}>{order.seller?.full_name ?? "—"}</Field>
         </div>
 
-        <div className="overflow-x-auto">
+        <div className="hidden overflow-x-auto md:block">
           <table className="w-full min-w-[720px] text-sm">
             <thead className="border-b border-ink bg-paper text-left">
               <tr>
@@ -150,6 +150,27 @@ export function OrderDetail({ order }: { order: OrderWithItems }) {
             </tbody>
           </table>
         </div>
+
+        {/* Phones: one stacked row per item instead of a table that scrolls sideways. */}
+        <ul className="border-b border-ink md:hidden">
+          {order.items.map((item) => (
+            <li key={item.id} className="flex items-center gap-3 border-b border-rule-soft px-3 py-2.5 last:border-0">
+              <ProductThumb path={item.photo_path} size={44} />
+              <span className="min-w-0 flex-1">
+                <span className="block font-semibold">
+                  {item.name}
+                  {item.is_wholesale && (
+                    <span className="ml-2 rounded-sm bg-ink px-1.5 py-0.5 text-caption font-bold text-cell uppercase">{uz.checkout.optom}</span>
+                  )}
+                </span>
+                <span className="num block text-xs text-ink-3">
+                  {formatKrw(item.unit_price)} × {item.qty} · <Weight grams={item.line_weight_g} />
+                </span>
+              </span>
+              <Krw value={item.line_total} className="font-bold" />
+            </li>
+          ))}
+        </ul>
 
         <div className="grid md:grid-cols-[1fr_22rem]">
           <section className="cell border-b border-ink md:border-r md:border-b-0">

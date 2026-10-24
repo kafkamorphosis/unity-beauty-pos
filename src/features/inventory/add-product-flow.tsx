@@ -58,7 +58,7 @@ function ArchivedPanel({ product, onRestored, onCancel }: { product: Product; on
           <p className="text-sm">{uz.inventory.archivedHint}</p>
         </div>
       </div>
-      <div className="cell flex justify-end gap-2">
+      <div className="dialog-actions">
         <Button type="button" variant="outline" onClick={onCancel}>
           {uz.common.cancel}
         </Button>
@@ -167,7 +167,7 @@ export function AddProductFlow({
                   </Button>
                 </span>
               </label>
-              <div className="cell flex justify-end gap-2">
+              <div className="dialog-actions">
                 <Button type="button" variant="outline" onClick={close}>
                   {uz.common.cancel}
                 </Button>

@@ -176,7 +176,7 @@ export function ProductForm({
         <div className="cell flex flex-col justify-center gap-2">
           <span className="caption">{uz.inventory.photoOptional}</span>
           <div className="flex flex-wrap gap-2">
-            <Button asChild variant="outline" size="sm">
+            <Button asChild variant="outline" size="sm" className="h-auto min-h-9 py-1.5 text-left whitespace-normal">
               <label>
                 <Camera aria-hidden />
                 {uz.inventory.choosePhoto}
@@ -235,7 +235,7 @@ export function ProductForm({
           {error}
         </p>
       )}
-      <div className="cell flex justify-end gap-2">
+      <div className="dialog-actions">
         <Button type="button" variant="outline" onClick={onCancel}>
           {uz.common.cancel}
         </Button>

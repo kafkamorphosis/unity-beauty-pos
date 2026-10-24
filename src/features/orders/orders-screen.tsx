@@ -36,7 +36,7 @@ function readFilters(sp: URLSearchParams): OrderFilters {
   };
 }
 
-const selectClass = "h-10 rounded-sm border border-input bg-cell px-2 text-sm font-medium";
+const selectClass = "h-11 w-full min-w-0 rounded-sm border border-input bg-cell px-2 text-sm font-medium sm:h-10 sm:w-auto";
 
 export function OrdersScreen() {
   const router = useRouter();
@@ -85,13 +85,13 @@ export function OrdersScreen() {
       <PageHeader title={uz.orders.title} />
       <div className="waybill">
         <form
-          className="flex flex-wrap items-center gap-2 border-b border-ink p-2"
+          className="grid grid-cols-2 gap-2 border-b border-ink p-2 sm:flex sm:flex-wrap sm:items-center"
           onSubmit={(e) => {
             e.preventDefault();
             update({ q: search.trim() || undefined });
           }}
         >
-          <label className="relative min-w-56 flex-1">
+          <label className="relative col-span-2 sm:min-w-56 sm:flex-1">
             <span className="sr-only">{uz.common.search}</span>
             <Search className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-ink-3" aria-hidden />
             <Input
@@ -115,7 +115,7 @@ export function OrdersScreen() {
             <option value="store">{uz.orderType.store}</option>
             <option value="tekpe">{uz.orderType.tekpe}</option>
           </select>
-          <select aria-label={uz.orders.seller} className={selectClass} value={filters.sellerId ?? ""} onChange={(e) => update({ seller: e.target.value || undefined })}>
+          <select aria-label={uz.orders.seller} className={`${selectClass} col-span-2`} value={filters.sellerId ?? ""} onChange={(e) => update({ seller: e.target.value || undefined })}>
             <option value="">{uz.orders.allSellers}</option>
             {sellers.map((s) => (
               <option key={s.id} value={s.id}>
@@ -123,13 +123,13 @@ export function OrdersScreen() {
               </option>
             ))}
           </select>
-          <label className="flex items-center gap-1 text-sm text-ink-2">
+          <label className="flex min-w-0 flex-col gap-1 text-xs font-semibold text-ink-2 sm:flex-row sm:items-center sm:text-sm sm:font-normal">
             {uz.orders.from}
-            <Input type="date" value={filters.from ?? ""} onChange={(e) => update({ from: e.target.value || undefined })} className="num h-10 w-38" />
+            <Input type="date" value={filters.from ?? ""} onChange={(e) => update({ from: e.target.value || undefined })} className="num h-11 w-full min-w-0 sm:h-10 sm:w-38" />
           </label>
-          <label className="flex items-center gap-1 text-sm text-ink-2">
+          <label className="flex min-w-0 flex-col gap-1 text-xs font-semibold text-ink-2 sm:flex-row sm:items-center sm:text-sm sm:font-normal">
             {uz.orders.to}
-            <Input type="date" value={filters.to ?? ""} onChange={(e) => update({ to: e.target.value || undefined })} className="num h-10 w-38" />
+            <Input type="date" value={filters.to ?? ""} onChange={(e) => update({ to: e.target.value || undefined })} className="num h-11 w-full min-w-0 sm:h-10 sm:w-38" />
           </label>
           {anyFilter && (
             <Button

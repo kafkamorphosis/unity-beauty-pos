@@ -218,7 +218,7 @@ export function SellScreen() {
       </aside>
 
       {/* Phone/tablet: sticky total strip above the bottom nav opens the cart as a sheet. */}
-      <div className="fixed inset-x-0 bottom-16 z-30 flex items-center gap-3 border-t border-ink bg-cell px-3 py-2 md:bottom-0 lg:hidden">
+      <div className="fixed inset-x-0 bottom-[calc(4rem+env(safe-area-inset-bottom))] z-30 flex items-center gap-3 border-t border-ink bg-cell px-3 py-2 md:bottom-0 lg:hidden">
         <div className="min-w-0 flex-1">
           <span className="caption">
             {uz.seller.cart} · {totals.itemCount} {uz.common.pcs}
@@ -230,7 +230,7 @@ export function SellScreen() {
         </Button>
       </div>
       <Sheet open={sheetOpen} onOpenChange={setSheetOpen}>
-        <SheetContent side="bottom" className="max-h-[92dvh] gap-0 overflow-y-auto border-t border-ink p-0">
+        <SheetContent side="bottom" className="max-h-[92dvh] gap-0 overflow-y-auto border-t border-ink p-0 pb-[env(safe-area-inset-bottom)]">
           <SheetHeader className="border-b border-ink px-4 py-3">
             <SheetTitle>{uz.seller.cart}</SheetTitle>
             <SheetDescription className="sr-only">{uz.seller.order}</SheetDescription>

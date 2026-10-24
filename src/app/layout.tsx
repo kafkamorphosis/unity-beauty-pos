@@ -17,6 +17,8 @@ export const metadata: Metadata = {
 
 export const viewport: Viewport = {
   themeColor: "#f2f2f0",
+  // Lets the bottom bars sit above the iPhone home indicator (they pad with env(safe-area-inset-bottom)).
+  viewportFit: "cover",
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {

@@ -32,6 +32,16 @@ function Badge({ count, inverted }: { count: number | null; inverted?: boolean }
   );
 }
 
+// Bottom-bar badge: pinned to the icon's top-right corner, clear of the icon itself.
+function NavBadge({ count, inverted }: { count: number | null; inverted?: boolean }) {
+  if (!count) return null;
+  return (
+    <span className="absolute top-1.5 left-[calc(50%+0.5rem)]">
+      <Badge count={count} inverted={inverted} />
+    </span>
+  );
+}
+
 export function AppShell({ navKey, user, children }: { navKey: NavKey; user: ShellUser; children: React.ReactNode }) {
   const nav = NAV[navKey];
   const pathname = usePathname();
@@ -106,7 +116,7 @@ export function AppShell({ navKey, user, children }: { navKey: NavKey; user: She
         </div>
       )}
 
-      <main className="flex flex-1 flex-col px-3 pt-4 pb-24 md:px-6 md:pt-6 md:pb-8">{children}</main>
+      <main className="flex min-w-0 flex-1 flex-col px-3 pt-4 pb-[calc(6rem+env(safe-area-inset-bottom))] md:px-6 md:pt-6 md:pb-8">{children}</main>
 
       <nav
         aria-label="Asosiy"
@@ -127,7 +137,8 @@ export function AppShell({ navKey, user, children }: { navKey: NavKey; user: She
               )}
             >
               <item.icon className="size-5" aria-hidden />
-              {item.label}
+              <span className="max-w-full truncate px-0.5">{item.label}</span>
+              <NavBadge count={badgeFor(item)} inverted={active} />
             </Link>
           );
         })}
@@ -143,11 +154,7 @@ export function AppShell({ navKey, user, children }: { navKey: NavKey; user: She
           >
             <MoreHorizontal className="size-5" aria-hidden />
             {uz.nav.more}
-            {moreBadge > 0 && (
-              <span className="absolute top-1.5 right-[calc(50%-1.4rem)]">
-                <Badge count={moreBadge} inverted={moreActive} />
-              </span>
-            )}
+            <NavBadge count={moreBadge} inverted={moreActive} />
           </button>
         )}
       </nav>

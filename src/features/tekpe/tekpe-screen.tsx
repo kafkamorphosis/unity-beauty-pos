@@ -184,10 +184,10 @@ export function TekpeScreen() {
                     }
                   />
                 )}
-                <Link href={`/buyurtmalar/${o.id}`} className="monument w-28 text-2xl hover:underline">
+                <Link href={`/buyurtmalar/${o.id}`} className="monument text-2xl hover:underline sm:w-28">
                   {formatOrderNo(o.order_no)}
                 </Link>
-                <div className="min-w-40 flex-1">
+                <div className="min-w-40 flex-1 max-sm:order-last max-sm:basis-full">
                   <p className="font-semibold">{o.customer?.name ?? "—"}</p>
                   <p className="num text-xs text-ink-3">
                     {o.customer ? formatPhone(o.customer.phone) : ""} · {formatDateTime(o.created_at)}
@@ -197,11 +197,11 @@ export function TekpeScreen() {
                 <span className="rounded-sm border border-ink px-2 py-0.5 text-xs font-bold uppercase">
                   {o.destination ? uz.destination[o.destination] : ""}
                 </span>
-                <span className="num w-28 text-sm text-ink-2">
+                <span className="num text-sm text-ink-2 sm:w-28">
                   {o.item_count} {uz.common.pcs} · {formatKg(o.total_weight_g)}
                 </span>
-                <span className="num w-36 text-right font-bold">{formatOrderTotal(o)}</span>
-                <div className="flex gap-1.5">
+                <span className="num ml-auto text-right font-bold sm:ml-0 sm:w-36">{formatOrderTotal(o)}</span>
+                <div className="flex gap-1.5 max-sm:order-last max-sm:w-full max-sm:justify-end">
                   {tab === "pending" ? (
                     <ApproveActions order={o} onDone={reload} />
                   ) : (

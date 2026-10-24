@@ -164,6 +164,14 @@
   .num {
     @apply tabular-nums;
   }
+  /* Dialog action row. Phones: pinned to the bottom of the scrolling dialog, cancel beside a primary
+     that takes the remaining width and may wrap; wider screens: right-aligned buttons. */
+  .dialog-actions {
+    @apply sticky bottom-0 z-10 grid grid-cols-[auto_minmax(0,1fr)] gap-2 border-t border-ink bg-cell p-3 sm:static sm:flex sm:justify-end sm:border-t-0;
+  }
+  .dialog-actions > * {
+    @apply h-auto min-h-11 min-w-0 whitespace-normal sm:min-h-0;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {

@@ -92,7 +92,7 @@ export function RestockPanel({ product, onDone, onCancel }: { product: Product; 
           </span>
         </span>
       </label>
-      <div className="cell flex justify-end gap-2">
+      <div className="dialog-actions">
         <Button type="button" variant="outline" onClick={onCancel}>
           {uz.common.cancel}
         </Button>

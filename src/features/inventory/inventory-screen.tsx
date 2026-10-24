@@ -185,7 +185,7 @@ export function InventoryScreen() {
 
       <div className="waybill">
         <div className="flex flex-wrap items-center gap-2 border-b border-ink p-2">
-          <label className="relative min-w-0 flex-1">
+          <label className="relative w-full min-w-0 sm:w-auto sm:flex-1">
             <span className="sr-only">{uz.common.search}</span>
             <Search className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-ink-3" aria-hidden />
             <Input
