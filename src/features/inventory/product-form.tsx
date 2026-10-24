@@ -164,7 +164,7 @@ export function ProductForm({
 
   return (
     <form onSubmit={onSubmit} className="grid" noValidate>
-      <div className="grid grid-cols-[auto_1fr] border-b border-ink">
+      <div className="grid grid-cols-[auto_minmax(0,1fr)] border-b border-ink">
         <div className="cell flex items-center border-r border-ink">
           {preview ? (
             // eslint-disable-next-line @next/next/no-img-element
@@ -173,7 +173,7 @@ export function ProductForm({
             <ProductThumb path={currentPhoto} size={80} />
           )}
         </div>
-        <div className="cell flex flex-col justify-center gap-2">
+        <div className="cell flex min-w-0 flex-col justify-center gap-2">
           <span className="caption">{uz.inventory.photoOptional}</span>
           <div className="flex flex-wrap gap-2">
             <Button asChild variant="outline" size="sm" className="h-auto min-h-9 py-1.5 text-left whitespace-normal">

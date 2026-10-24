@@ -36,7 +36,7 @@ function Badge({ count, inverted }: { count: number | null; inverted?: boolean }
 function NavBadge({ count, inverted }: { count: number | null; inverted?: boolean }) {
   if (!count) return null;
   return (
-    <span className="absolute top-1.5 left-[calc(50%+0.5rem)]">
+    <span className="absolute top-1 left-[calc(50%+0.75rem)]">
       <Badge count={count} inverted={inverted} />
     </span>
   );
