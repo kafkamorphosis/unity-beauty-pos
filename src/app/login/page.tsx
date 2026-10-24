@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Image from "next/image";
 import { redirect } from "next/navigation";
+import { homeFor } from "@/lib/auth/home";
 import { getSessionProfile } from "@/lib/auth/session";
 import { uz } from "@/lib/i18n/uz";
 import { LoginForm } from "./login-form";
@@ -9,7 +10,7 @@ export const metadata: Metadata = { title: uz.login.title };
 
 export default async function LoginPage() {
   const profile = await getSessionProfile();
-  if (profile) redirect(profile.role === "admin" ? "/admin" : "/");
+  if (profile) redirect(homeFor(profile.role));
 
   return (
     <main className="flex min-h-dvh items-center justify-center px-4 py-10">

@@ -28,13 +28,15 @@ export const uz = {
     analytics: "Statistika",
     notifications: "Bildirishnomalar",
     customers: "Mijozlar",
+    sell: "Sotuv",
+    myOrders: "Buyurtmalarim",
     more: "Boshqa",
     admin: "Akkauntlar",
     settings: "Sozlamalar",
   },
   roles: {
-    admin: "Administrator",
-    owner: "Egasi",
+    admin: "Root",
+    manager: "Menejer",
     seller: "Sotuvchi",
   },
   login: {
@@ -347,6 +349,7 @@ export const uz = {
   },
   status: {
     completed: "Bajarildi",
+    pending: "Tasdiq kutilmoqda",
     new: "Yangi",
     ready: "Tayyor",
     picked_up: "Olib ketildi",

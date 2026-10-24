@@ -4,6 +4,7 @@ import { cn } from "@/lib/utils";
 
 const STYLE: Record<OrderStatus, string> = {
   completed: "border-ok/40 bg-ok-soft text-ok",
+  pending: "border-warn/40 bg-warn-soft text-warn",
   new: "border-ink bg-sand text-sand-ink",
   ready: "border-ink bg-ink text-cell",
   picked_up: "border-rule-soft bg-paper text-ink-2",

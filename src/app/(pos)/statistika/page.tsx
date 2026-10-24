@@ -7,10 +7,10 @@ import { uz } from "@/lib/i18n/uz";
 export const metadata: Metadata = { title: uz.analytics.title };
 
 export default async function StatistikaPage() {
-  const me = await requireRole(["owner", "seller"]);
+  const me = await requireRole(["manager", "seller"]);
   return (
     <Suspense>
-      <AnalyticsScreen isOwner={me.role === "owner"} meId={me.id} />
+      <AnalyticsScreen isManager={me.role === "manager"} meId={me.id} />
     </Suspense>
   );
 }

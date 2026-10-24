@@ -7,19 +7,19 @@ import { uz } from "@/lib/i18n/uz";
 
 // Owner: "" = everyone, "me" = own, otherwise a seller id. Sellers are always scoped to themselves
 // by the database; the value sent is irrelevant for them.
-export function resolveScope(isOwner: boolean, meId: string, param: string | null) {
-  const scope = isOwner ? (param ?? "") : "me";
+export function resolveScope(isManager: boolean, meId: string, param: string | null) {
+  const scope = isManager ? (param ?? "") : "me";
   const sellerId = scope === "" ? null : scope === "me" ? meId : scope;
   return { scope, sellerId };
 }
 
 export function ScopeSelect({
-  isOwner,
+  isManager,
   meId,
   value,
   onChange,
 }: {
-  isOwner: boolean;
+  isManager: boolean;
   meId: string;
   value: string;
   onChange(scope: string): void;
@@ -27,10 +27,10 @@ export function ScopeSelect({
   const [sellers, setSellers] = useState<{ id: string; full_name: string; username: string }[]>([]);
 
   useEffect(() => {
-    if (isOwner) listSellers(supabaseBrowser()).then(setSellers).catch(() => {});
-  }, [isOwner]);
+    if (isManager) listSellers(supabaseBrowser()).then(setSellers).catch(() => {});
+  }, [isManager]);
 
-  if (!isOwner) return <span className="caption">{uz.analytics.mineCaption}</span>;
+  if (!isManager) return <span className="caption">{uz.analytics.mineCaption}</span>;
   return (
     <label className="flex items-center gap-2 text-sm text-ink-2">
       {uz.analytics.scope}

@@ -20,14 +20,14 @@ import { resolveScope, ScopeSelect } from "./scope-select";
 
 const KINDS: PeriodKind[] = ["day", "week", "month", "year"];
 
-export function AnalyticsScreen({ isOwner, meId }: { isOwner: boolean; meId: string }) {
+export function AnalyticsScreen({ isManager, meId }: { isManager: boolean; meId: string }) {
   const router = useRouter();
   const pathname = usePathname();
   const sp = useSearchParams();
   const today = seoulToday();
   const kind = (KINDS.includes(sp.get("p") as PeriodKind) ? sp.get("p") : "day") as PeriodKind;
   const anchor = /^\d{4}-\d{2}-\d{2}$/.test(sp.get("d") ?? "") ? sp.get("d")! : today;
-  const { scope: scopeParam, sellerId } = resolveScope(isOwner, meId, sp.get("s"));
+  const { scope: scopeParam, sellerId } = resolveScope(isManager, meId, sp.get("s"));
 
   const range = periodRange(kind, anchor);
   const key = `${range.from}|${range.to}|${sellerId}`;
@@ -71,7 +71,7 @@ export function AnalyticsScreen({ isOwner, meId }: { isOwner: boolean; meId: str
   return (
     <>
       <PageHeader title={uz.analytics.title}>
-        <ScopeSelect isOwner={isOwner} meId={meId} value={scopeParam} onChange={(v) => go({ s: v || undefined })} />
+        <ScopeSelect isManager={isManager} meId={meId} value={scopeParam} onChange={(v) => go({ s: v || undefined })} />
       </PageHeader>
 
       <div className="waybill mb-4 flex flex-wrap items-stretch">

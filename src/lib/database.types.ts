@@ -3,6 +3,8 @@
 export type Json = string | number | boolean | null | { [key: string]: Json | undefined } | Json[];
 
 type OrderRow = {
+  approved_at: string | null;
+  approved_by: string | null;
   cancelled_at: string | null;
   cancelled_by: string | null;
   cost_total: number;
@@ -176,6 +178,33 @@ export type Database = {
         Returns: { product_id: string; name: string; photo_path: string | null; stock: number; qty_sold: number }[];
       };
       cancel_order: { Args: { p_order_id: string }; Returns: OrderRow };
+      approve_order: { Args: { p_order_id: string }; Returns: OrderRow };
+      submit_seller_order: {
+        Args: {
+          p_request_id: string;
+          p_items: Json;
+          p_customer_phone: string;
+          p_customer_name: string;
+          p_payment_method: Database["public"]["Enums"]["payment_method"];
+          p_destination: Database["public"]["Enums"]["destination"];
+        };
+        Returns: OrderRow;
+      };
+      seller_catalog: {
+        Args: { p_query?: string | null; p_limit?: number };
+        Returns: {
+          id: string;
+          barcode: string;
+          name: string;
+          photo_path: string | null;
+          retail_price: number;
+          wholesale_price: number;
+          weight_g: number;
+          stock: number;
+        }[];
+      };
+      my_orders: { Args: { p_limit?: number; p_offset?: number }; Returns: Json };
+      my_order: { Args: { p_id?: string | null; p_request_id?: string | null }; Returns: Json };
       customer_stats: {
         Args: { p_seller?: string | null; p_customer?: string | null };
         Returns: {
@@ -214,10 +243,10 @@ export type Database = {
       };
     };
     Enums: {
-      app_role: "admin" | "owner" | "seller";
+      app_role: "admin" | "manager" | "seller";
       destination: "KR" | "UZ";
       movement_kind: "restock" | "sale" | "cancel" | "adjust";
-      order_status: "completed" | "new" | "ready" | "picked_up" | "cancelled";
+      order_status: "completed" | "pending" | "new" | "ready" | "picked_up" | "cancelled";
       order_type: "store" | "tekpe";
       payment_method: "cash" | "card" | "transfer";
     };

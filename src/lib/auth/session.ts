@@ -2,12 +2,13 @@ import "server-only";
 import { cache } from "react";
 import { redirect } from "next/navigation";
 import { supabaseServer } from "@/lib/supabase/server";
+import { homeFor, type Role } from "./home";
 
 export type SessionProfile = {
   id: string;
   username: string;
   fullName: string;
-  role: "admin" | "owner" | "seller";
+  role: Role;
 };
 
 // One lookup per request, shared by layouts and pages.
@@ -27,6 +28,6 @@ export const getSessionProfile = cache(async (): Promise<SessionProfile | null> 
 export async function requireRole(roles: SessionProfile["role"][]): Promise<SessionProfile> {
   const profile = await getSessionProfile();
   if (!profile) redirect("/login");
-  if (!roles.includes(profile.role)) redirect(profile.role === "admin" ? "/admin" : "/");
+  if (!roles.includes(profile.role)) redirect(homeFor(profile.role));
   return profile;
 }

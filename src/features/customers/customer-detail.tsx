@@ -104,11 +104,11 @@ function NameEditor({ customer, onSaved }: { customer: CustomerRow; onSaved(name
   );
 }
 
-export function CustomerDetail({ id, isOwner, meId }: { id: string; isOwner: boolean; meId: string }) {
+export function CustomerDetail({ id, isManager, meId }: { id: string; isManager: boolean; meId: string }) {
   const router = useRouter();
   const pathname = usePathname();
   const sp = useSearchParams();
-  const { scope, sellerId } = resolveScope(isOwner, meId, sp.get("s"));
+  const { scope, sellerId } = resolveScope(isManager, meId, sp.get("s"));
   const key = String(sellerId);
   const [data, setData] = useState<{ key: string; customer: CustomerRow | null; orders: OrderListRow[] } | null>(null);
 
@@ -128,7 +128,7 @@ export function CustomerDetail({ id, isOwner, meId }: { id: string; isOwner: boo
 
   const current = data?.key === key ? data : null;
   const customer = current?.customer;
-  const backHref = `/mijozlar${isOwner && scope ? `?s=${encodeURIComponent(scope)}` : ""}`;
+  const backHref = `/mijozlar${isManager && scope ? `?s=${encodeURIComponent(scope)}` : ""}`;
 
   return (
     <>
@@ -140,7 +140,7 @@ export function CustomerDetail({ id, isOwner, meId }: { id: string; isOwner: boo
           </Link>
         </Button>
         <ScopeSelect
-          isOwner={isOwner}
+          isManager={isManager}
           meId={meId}
           value={scope}
           onChange={(v) => router.replace(v ? `${pathname}?s=${encodeURIComponent(v)}` : pathname, { scroll: false })}

@@ -1,4 +1,5 @@
-import { Bell, Boxes, ChartColumn, Contact, ReceiptText, ScanBarcode, Settings, Truck, Users, type LucideIcon } from "lucide-react";
+import { Bell, Boxes, ChartColumn, Contact, ReceiptText, ScanBarcode, Settings, ShoppingBag, Truck, Users, type LucideIcon } from "lucide-react";
+import type { NavKey } from "@/lib/auth/home";
 import { uz } from "@/lib/i18n/uz";
 
 export type NavItem = {
@@ -11,8 +12,7 @@ export type NavItem = {
   more?: boolean;
 };
 
-// Server layouts pick a menu by name; icons are components and can't cross to the client as props.
-export type NavKey = "pos" | "admin";
+export type { NavKey };
 
 export const NAV: Record<NavKey, NavItem[]> = {
   pos: [
@@ -23,6 +23,11 @@ export const NAV: Record<NavKey, NavItem[]> = {
     { href: "/mijozlar", label: uz.nav.customers, icon: Contact, more: true },
     { href: "/statistika", label: uz.nav.analytics, icon: ChartColumn, more: true },
     { href: "/bildirishnomalar", label: uz.nav.notifications, icon: Bell, badge: "lowStock", more: true },
+  ],
+  seller: [
+    { href: "/sotuv", label: uz.nav.sell, icon: ShoppingBag },
+    { href: "/buyurtmalarim", label: uz.nav.myOrders, icon: ReceiptText },
+    { href: "/statistika", label: uz.nav.analytics, icon: ChartColumn },
   ],
   admin: [
     { href: "/admin", label: uz.nav.admin, icon: Users },

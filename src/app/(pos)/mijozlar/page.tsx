@@ -7,10 +7,10 @@ import { uz } from "@/lib/i18n/uz";
 export const metadata: Metadata = { title: uz.customers.title };
 
 export default async function MijozlarPage() {
-  const me = await requireRole(["owner", "seller"]);
+  const me = await requireRole(["manager"]);
   return (
     <Suspense>
-      <CustomersScreen isOwner={me.role === "owner"} meId={me.id} />
+      <CustomersScreen isManager meId={me.id} />
     </Suspense>
   );
 }

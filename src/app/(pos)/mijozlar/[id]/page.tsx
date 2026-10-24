@@ -12,10 +12,10 @@ const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/
 export default async function MijozPage({ params }: PageProps<"/mijozlar/[id]">) {
   const { id } = await params;
   if (!UUID_RE.test(id)) notFound();
-  const me = await requireRole(["owner", "seller"]);
+  const me = await requireRole(["manager"]);
   return (
     <Suspense>
-      <CustomerDetail id={id} isOwner={me.role === "owner"} meId={me.id} />
+      <CustomerDetail id={id} isManager meId={me.id} />
     </Suspense>
   );
 }

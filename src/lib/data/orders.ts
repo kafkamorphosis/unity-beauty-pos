@@ -77,7 +77,7 @@ export async function listOrders(sb: SB, f: OrderFilters, pageSize = 50): Promis
 }
 
 export async function listSellers(sb: SB): Promise<{ id: string; full_name: string; username: string }[]> {
-  const { data, error } = await sb.from("profiles").select("id, full_name, username").in("role", ["owner", "seller"]).order("full_name");
+  const { data, error } = await sb.from("profiles").select("id, full_name, username").in("role", ["manager", "seller"]).order("full_name");
   if (error) throw error;
   return data;
 }

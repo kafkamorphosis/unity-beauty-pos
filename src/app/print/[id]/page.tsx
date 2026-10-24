@@ -21,7 +21,7 @@ export async function generateMetadata({ params }: PageProps<"/print/[id]">): Pr
 }
 
 export default async function PrintPage({ params, searchParams }: PageProps<"/print/[id]">) {
-  await requireRole(["owner", "seller"]);
+  await requireRole(["manager"]);
   const { id } = await params;
   const { autoprint } = await searchParams;
   const order = await getOrderWithItems(await supabaseServer(), id).catch(() => null);

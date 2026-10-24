@@ -42,11 +42,11 @@ function download(rows: CustomerRow[]) {
   setTimeout(() => URL.revokeObjectURL(url), 1000);
 }
 
-export function CustomersScreen({ isOwner, meId }: { isOwner: boolean; meId: string }) {
+export function CustomersScreen({ isManager, meId }: { isManager: boolean; meId: string }) {
   const router = useRouter();
   const pathname = usePathname();
   const sp = useSearchParams();
-  const { scope, sellerId } = resolveScope(isOwner, meId, sp.get("s"));
+  const { scope, sellerId } = resolveScope(isManager, meId, sp.get("s"));
   const sort = (SORTS.includes(sp.get("sort") as CustomerSort) ? sp.get("sort") : "recent") as CustomerSort;
   const [query, setQuery] = useState(sp.get("q") ?? "");
   const [result, setResult] = useState<{ key: string; rows: CustomerRow[] } | null>(null);
@@ -73,12 +73,12 @@ export function CustomersScreen({ isOwner, meId }: { isOwner: boolean; meId: str
 
   const all = result?.key === key ? result.rows : null;
   const rows = all ? sortCustomers(filterCustomers(all, query), sort) : [];
-  const detailHref = (id: string) => `/mijozlar/${id}${isOwner && scope ? `?s=${encodeURIComponent(scope)}` : ""}`;
+  const detailHref = (id: string) => `/mijozlar/${id}${isManager && scope ? `?s=${encodeURIComponent(scope)}` : ""}`;
 
   return (
     <>
       <PageHeader title={uz.customers.title}>
-        <ScopeSelect isOwner={isOwner} meId={meId} value={scope} onChange={(v) => go({ s: v || undefined })} />
+        <ScopeSelect isManager={isManager} meId={meId} value={scope} onChange={(v) => go({ s: v || undefined })} />
         <Button variant="outline" onClick={() => download(rows)} disabled={rows.length === 0}>
           <Download aria-hidden />
           {uz.customers.exportCsv}

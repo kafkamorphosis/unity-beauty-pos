@@ -1,6 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import type { Role } from "@/lib/auth/home";
 import { requireRole } from "@/lib/auth/session";
 import { usernameToEmail } from "@/lib/auth/username";
 import { supabaseAdmin } from "@/lib/supabase/admin";
@@ -9,7 +10,6 @@ import { uz } from "@/lib/i18n/uz";
 import { normalizeUsername, validatePassword, validateUsername } from "./validate";
 
 export type ActionResult = { ok: true } | { ok: false; error: string };
-type Role = "owner" | "seller" | "admin";
 
 const BANNED = "876000h"; // ~100 years
 

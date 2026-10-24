@@ -6,9 +6,8 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { uz } from "@/lib/i18n/uz";
+import type { Role } from "@/lib/auth/home";
 import { createAccount, resetPassword } from "./actions";
-
-type Role = "owner" | "seller" | "admin";
 
 export function RoleSelect({
   value,
@@ -30,7 +29,7 @@ export function RoleSelect({
       className="h-10 w-full rounded-sm border border-input bg-cell px-2 text-sm font-medium focus-visible:border-ink disabled:opacity-60"
     >
       <option value="seller">{uz.roles.seller}</option>
-      <option value="owner">{uz.roles.owner}</option>
+      <option value="manager">{uz.roles.manager}</option>
       <option value="admin">{uz.roles.admin}</option>
     </select>
   );

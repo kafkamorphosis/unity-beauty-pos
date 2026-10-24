@@ -12,8 +12,9 @@ import { uz } from "@/lib/i18n/uz";
 import { cn } from "@/lib/utils";
 import { NAV, isActive, type NavItem, type NavKey } from "./nav-items";
 import { useOnline } from "./use-online";
+import type { Role } from "@/lib/auth/home";
 
-type ShellUser = { fullName: string; role: "admin" | "owner" | "seller" };
+type ShellUser = { fullName: string; role: Role };
 
 function Badge({ count, inverted }: { count: number | null; inverted?: boolean }) {
   if (!count) return null;
