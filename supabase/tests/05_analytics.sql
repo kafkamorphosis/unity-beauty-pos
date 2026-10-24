@@ -75,3 +75,41 @@ begin
   perform pg_temp.expect_error('select * from public.least_sold(14)', 'NOT_AUTHORIZED');
   perform pg_temp.logout();
 end $$;
+
+-- a seller only ever sees their own numbers, whoever they ask for
+do $$
+declare
+  s1 uuid := pg_temp.make_user('seller');
+  s2 uuid := pg_temp.make_user('seller');
+  m uuid := pg_temp.make_user('manager');
+  a uuid := pg_temp.make_product('AS-A', 100, 6000, 10000, 8000, 250);
+  o public.orders;
+  r jsonb;
+  v_n int;
+  v_from timestamptz := now() - interval '1 hour';
+  v_to timestamptz := now() + interval '1 hour';
+begin
+  update public.orders set created_at = created_at - interval '5 years';
+  update public.app_secrets set telegram_enabled = false;
+  perform pg_temp.login_as(s1);
+  select * into o from public.submit_seller_order(gen_random_uuid(), jsonb_build_array(jsonb_build_object('product_id', a, 'qty', 3)), '+821012345678', 'Ali', 'cash', 'KR');
+  perform pg_temp.logout();
+  perform pg_temp.login_as(m);
+  perform public.approve_order(o.id);
+  perform pg_temp.logout();
+  perform pg_temp.login_as(s2);
+  select * into o from public.submit_seller_order(gen_random_uuid(), jsonb_build_array(jsonb_build_object('product_id', a, 'qty', 1)), '+821012345678', 'Ali', 'cash', 'KR');
+  perform pg_temp.logout();
+  perform pg_temp.login_as(m);
+  perform public.approve_order(o.id);
+  perform pg_temp.logout();
+
+  perform pg_temp.login_as(s1);
+  r := public.analytics_report(v_from, v_to, s2);
+  assert (r ->> 'revenue')::int = 30000, 'seller asking for another seller gets own numbers: ' || (r ->> 'revenue');
+  r := public.analytics_report(v_from, v_to);
+  assert (r ->> 'revenue')::int = 30000, 'seller asking for everyone gets own numbers';
+  select qty_sold into v_n from public.least_sold(14, s2) where product_id = a;
+  assert v_n = 3, 'least_sold is scoped to the seller too: ' || v_n;
+  perform pg_temp.logout();
+end $$;

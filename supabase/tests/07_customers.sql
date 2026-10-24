@@ -67,3 +67,43 @@ begin
   perform pg_temp.expect_error(format('select public.rename_customer(%L, %L)', ali, 'X'), 'NOT_AUTHORIZED');
   perform pg_temp.logout();
 end $$;
+
+-- a seller only ever sees their own clients and numbers
+do $$
+declare
+  s1 uuid := pg_temp.make_user('seller');
+  s2 uuid := pg_temp.make_user('seller');
+  m uuid := pg_temp.make_user('manager');
+  a uuid := pg_temp.make_product('CS-1', 100, 6000, 10000, 8000, 500);
+  one jsonb := jsonb_build_array(jsonb_build_object('product_id', a, 'qty', 1));
+  o public.orders;
+  ali uuid;
+  vali uuid;
+  r record;
+  v_n int;
+begin
+  update public.app_settings set kr_shipping_krw = 4000, uz_shipping_usd_per_kg = 10;
+  update public.app_secrets set telegram_enabled = false;
+  perform pg_temp.login_as(s1);
+  select * into o from public.submit_seller_order(gen_random_uuid(), one, '+821077770000', 'Ali', 'cash', 'KR');
+  ali := o.customer_id;
+  perform pg_temp.logout();
+  perform pg_temp.login_as(m);
+  perform public.approve_order(o.id);
+  perform pg_temp.logout();
+  perform pg_temp.login_as(s2);
+  select * into o from public.submit_seller_order(gen_random_uuid(), one, '+998907770000', 'Vali', 'cash', 'KR');
+  vali := o.customer_id;
+  perform pg_temp.logout();
+  perform pg_temp.login_as(m);
+  perform public.approve_order(o.id);
+  perform pg_temp.logout();
+
+  perform pg_temp.login_as(s1);
+  select * into r from public.customer_stats(s2) where id = ali;
+  assert r.orders = 1 and r.spent = 14000, 'seller asking for another seller gets own numbers: ' || r.orders || ' / ' || r.spent;
+  select count(*) into v_n from public.customer_stats() where id = vali;
+  assert v_n = 0, 'seller does not see other sellers'' clients';
+  perform pg_temp.expect_error(format('select public.rename_customer(%L, %L)', ali, 'X'), 'NOT_AUTHORIZED');
+  perform pg_temp.logout();
+end $$;
