@@ -30,7 +30,7 @@ import { ProductSearch } from "./product-search";
 import { SuccessDialog } from "./success-dialog";
 import { TekpeDialog } from "./tekpe-dialog";
 import { cartFingerprint, resolveRequest, type Payload } from "./request-key";
-import { useCart } from "./use-cart";
+import { KASSA_CART, useCart } from "./use-cart";
 
 const EMPTY_CUSTOMER: CustomerState = { country: "KR", phone: "", name: "", payment: "cash" };
 
@@ -51,7 +51,7 @@ type Attempt = { type: "store" } | { type: "tekpe"; destination: Destination };
 
 
 export function CheckoutScreen() {
-  const { lines, dispatch, totals, loadRequest, saveRequest, finishOrder } = useCart();
+  const { lines, dispatch, totals, loadRequest, saveRequest, finishOrder } = useCart(KASSA_CART);
   const online = useOnline();
   const router = useRouter();
   const searchRef = useRef<HTMLInputElement>(null);

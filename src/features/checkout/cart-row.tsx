@@ -63,11 +63,14 @@ export function CartRow({
   index,
   fresh,
   dispatch,
+  compact = false,
 }: {
   line: CartLine;
   index: number;
   fresh: boolean;
   dispatch(a: CartAction): void;
+  /** Always the stacked phone layout, for narrow side panels. */
+  compact?: boolean;
 }) {
   const over = isOverStock(line);
   const price = unitPrice(line);
@@ -75,7 +78,7 @@ export function CartRow({
   return (
     <li className={cn("border-b border-rule-soft", fresh && "animate-feed bg-sand-soft/50")}>
       {/* Desktop row */}
-      <div className="hidden grid-cols-[2rem_2.75rem_minmax(0,1fr)_7rem_5rem_8rem_7.5rem_2.5rem] items-center gap-3 px-3 py-2 xl:grid">
+      <div className={cn("hidden grid-cols-[2rem_2.75rem_minmax(0,1fr)_7rem_5rem_8rem_7.5rem_2.5rem] items-center gap-3 px-3 py-2", !compact && "xl:grid")}>
         <span className="num text-sm text-ink-3">{index + 1}</span>
         <ProductThumb path={line.photoPath} size={44} />
         <span className="min-w-0">
@@ -103,7 +106,7 @@ export function CartRow({
       </div>
 
       {/* Phone row */}
-      <div className="grid gap-2 px-3 py-3 xl:hidden">
+      <div className={cn("grid gap-2 px-3 py-3", !compact && "xl:hidden")}>
         <div className="flex items-start gap-3">
           <ProductThumb path={line.photoPath} size={44} />
           <span className="min-w-0 flex-1">

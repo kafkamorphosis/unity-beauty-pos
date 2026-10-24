@@ -13,6 +13,7 @@ import type { Destination } from "@/lib/domain/types";
 import { uz } from "@/lib/i18n/uz";
 import { cn } from "@/lib/utils";
 import type { CustomerState } from "./customer-panel";
+import { PaymentPicker } from "./payment-picker";
 import { PhoneField } from "./phone-field";
 
 export function TekpeDialog({
@@ -24,6 +25,8 @@ export function TekpeDialog({
   rates,
   busy,
   offline = false,
+  showPayment = false,
+  confirmLabel = uz.checkout.createTekpe,
   onConfirm,
 }: {
   open: boolean;
@@ -34,6 +37,9 @@ export function TekpeDialog({
   rates: ShippingRates | null;
   busy: boolean;
   offline?: boolean;
+  /** Sellers pick the payment method here; Kassa picks it in the side panel. */
+  showPayment?: boolean;
+  confirmLabel?: string;
   onConfirm(destination: Destination): void;
 }) {
   const [destination, setDestination] = useState<Destination>("KR");
@@ -105,6 +111,8 @@ export function TekpeDialog({
           />
         </label>
 
+        {showPayment && <PaymentPicker id="tekpe-payment" value={state.payment} onChange={(payment) => onChange({ payment })} />}
+
         {shipping && (
           <div className="grid grid-cols-2 border-b border-ink">
             <div className="cell border-r border-ink">
@@ -141,7 +149,7 @@ export function TekpeDialog({
             }}
           >
             {busy && <Loader2 className="animate-spin" aria-hidden />}
-            {uz.checkout.createTekpe}
+            {confirmLabel}
           </Button>
         </div>
       </DialogContent>
