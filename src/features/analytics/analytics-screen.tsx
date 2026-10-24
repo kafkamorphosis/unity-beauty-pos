@@ -127,7 +127,7 @@ export function AnalyticsScreen({ isManager, meId }: { isManager: boolean; meId:
         ) : current.products.length === 0 ? (
           <div className="waybill px-4 py-12 text-center text-ink-2">{uz.analytics.empty}</div>
         ) : (
-          <ProductTable products={current.products} />
+          <ProductTable products={current.products} showCost={current.cost !== null} />
         )}
         <div className="grid content-start gap-4">
           <BestSellers products={current?.products ?? []} />

@@ -5,7 +5,7 @@ import { listSellers } from "@/lib/data/orders";
 import { supabaseBrowser } from "@/lib/supabase/client";
 import { uz } from "@/lib/i18n/uz";
 
-// Owner: "" = everyone, "me" = own, otherwise a seller id. Sellers are always scoped to themselves
+// Manager: "" = everyone, "me" = own, otherwise a seller id. Sellers are always scoped to themselves
 // by the database; the value sent is irrelevant for them.
 export function resolveScope(isManager: boolean, meId: string, param: string | null) {
   const scope = isManager ? (param ?? "") : "me";

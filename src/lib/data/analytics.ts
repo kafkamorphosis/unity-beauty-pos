@@ -11,15 +11,17 @@ export type ReportProduct = {
   unit_weight_g: number;
   qty: number;
   revenue: number;
-  cost: number;
+  /** null for sellers: they never see cost. */
+  cost: number | null;
 };
 
 export type Report = {
   orders: number;
   items: number;
   revenue: number;
-  cost: number;
-  profit: number;
+  /** null for sellers. */
+  cost: number | null;
+  profit: number | null;
   shipping_krw: number;
   shipping_usd: number;
   by_payment: { method: PaymentMethod; orders: number; revenue: number }[];
@@ -32,11 +34,20 @@ export type LeastSoldRow = { product_id: string; name: string; photo_path: strin
 export async function getReport(sb: SB, from: string, to: string, sellerId: string | null): Promise<Report> {
   const { data, error } = await sb.rpc("analytics_report", { p_from: from, p_to: to, p_seller: sellerId });
   if (error) throw error;
-  const r = data as unknown as Report;
+  return normalizeReport(data);
+}
+
+const num = (v: unknown) => (v == null ? null : Number(v));
+
+// Postgres sums arrive as strings or numbers; sellers' reports carry no cost at all.
+export function normalizeReport(data: unknown): Report {
+  const r = data as Report;
   return {
     ...r,
+    cost: num(r.cost),
+    profit: num(r.profit),
     shipping_usd: Number(r.shipping_usd),
-    products: r.products.map((p) => ({ ...p, qty: Number(p.qty), revenue: Number(p.revenue), cost: Number(p.cost) })),
+    products: r.products.map((p) => ({ ...p, qty: Number(p.qty), revenue: Number(p.revenue), cost: num(p.cost) })),
   };
 }
 

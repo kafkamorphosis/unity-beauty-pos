@@ -19,16 +19,26 @@ export function KpiStrip({ report }: { report: Report }) {
   const pay = new Map(report.by_payment.map((p) => [p.method, p]));
   return (
     <div className="waybill mb-4">
-      <div className="grid sm:grid-cols-3 [&>*+*]:border-t [&>*+*]:border-ink sm:[&>*+*]:border-t-0 sm:[&>*+*]:border-l">
+      <div
+        className={cn(
+          "grid [&>*+*]:border-t [&>*+*]:border-ink sm:[&>*+*]:border-t-0 sm:[&>*+*]:border-l",
+          report.cost !== null && "sm:grid-cols-3",
+        )}
+      >
         <Cell label={uz.analytics.revenue}>
           <Krw value={report.revenue} className="monument block text-figure" />
         </Cell>
-        <Cell label={uz.analytics.cost}>
-          <Krw value={report.cost} className="monument block text-figure text-ink-2" />
-        </Cell>
-        <Cell label={uz.analytics.profit}>
-          <Krw value={report.profit} className={cn("monument block text-figure", report.profit >= 0 ? "text-ok" : "text-danger")} />
-        </Cell>
+        {/* Sellers' reports carry no cost or profit. */}
+        {report.cost !== null && report.profit !== null && (
+          <>
+            <Cell label={uz.analytics.cost}>
+              <Krw value={report.cost} className="monument block text-figure text-ink-2" />
+            </Cell>
+            <Cell label={uz.analytics.profit}>
+              <Krw value={report.profit} className={cn("monument block text-figure", report.profit >= 0 ? "text-ok" : "text-danger")} />
+            </Cell>
+          </>
+        )}
       </div>
       <div className="grid grid-cols-3 border-t border-ink [&>*+*]:border-l [&>*+*]:border-rule-soft">
         <Cell label={uz.analytics.orders}>
