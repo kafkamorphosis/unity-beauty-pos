@@ -1,10 +1,7 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
 import { Minus, Plus } from "lucide-react";
-import { toast } from "sonner";
-import { supabaseBrowser } from "@/lib/supabase/client";
-import { errorMessage } from "@/lib/domain/errors";
+import { stepStock } from "@/lib/domain/stock";
 import { uz } from "@/lib/i18n/uz";
 import { cn } from "@/lib/utils";
 
@@ -24,131 +21,56 @@ export function StockBar({ stock, threshold }: { stock: number; threshold: numbe
   );
 }
 
-export function StockStepper({
-  productId,
-  stock,
-  threshold,
-  onChange,
-}: {
-  productId: string;
-  stock: number;
-  threshold: number;
-  onChange?: (newStock: number) => void;
-}) {
-  const [value, setValue] = useState(stock);
-  const [editing, setEditing] = useState(false);
-  const [draft, setDraft] = useState("");
-  const [busy, setBusy] = useState(false);
-  const inputRef = useRef<HTMLInputElement>(null);
-
-  // Follow realtime updates from other devices without an effect.
-  const [seenStock, setSeenStock] = useState(stock);
-  if (stock !== seenStock) {
-    setSeenStock(stock);
-    setValue(stock);
-  }
-  useEffect(() => {
-    if (editing) inputRef.current?.select();
-  }, [editing]);
-
-  async function run(call: () => PromiseLike<{ data: { stock: number } | null; error: { message?: string } | null }>, optimistic: number) {
-    const previous = value;
-    setValue(optimistic);
-    setBusy(true);
-    const { data, error } = await call();
-    if (error) {
-      setValue(previous);
-      toast.error(errorMessage(error));
-      if (error.message === "STOCK_CHANGED") {
-        const { data: fresh } = await supabaseBrowser().from("products").select("stock").eq("id", productId).single();
-        if (fresh) setValue(fresh.stock);
-      }
-    } else if (data) {
-      setValue(data.stock);
-      onChange?.(data.stock);
-    }
-    setBusy(false);
-  }
-
-  // ±10 is a relative change applied to the current stock on the server, so sales made on other
-  // devices since this screen last refreshed are never overwritten.
-  function step(delta: number) {
-    run(
-      () => supabaseBrowser().rpc("change_stock", { p_product_id: productId, p_delta: delta }),
-      Math.max(value + delta, Math.min(value, 0)),
-    );
-  }
-
-  // A typed exact value carries the stock it replaces; the server refuses if it moved meanwhile.
-  function commit(next: number) {
-    const target = Math.max(0, Math.floor(next));
-    if (!Number.isFinite(target) || target === value) return;
-    run(
-      () => supabaseBrowser().rpc("adjust_stock", { p_product_id: productId, p_new_stock: target, p_expected_stock: value }),
-      target,
-    );
-  }
-
-  const low = value <= threshold;
-
+// The list only shows stock; changing it goes through Tahrirlash so a stray tap can't.
+export function StockReadout({ stock, threshold }: { stock: number; threshold: number }) {
+  const low = stock <= threshold;
   return (
-    <div className="flex w-44 flex-col gap-1.5">
-      <div className="flex h-9 items-stretch overflow-hidden rounded-sm border border-ink">
+    <div className="flex w-32 flex-col gap-1.5">
+      <span className={cn("num text-right text-base font-bold", low && "text-warn")} aria-label={`${uz.inventory.stock}: ${stock}`}>
+        {stock} <span className="text-xs font-semibold text-ink-3">{uz.common.pcs}</span>
+      </span>
+      <StockBar stock={stock} threshold={threshold} />
+    </div>
+  );
+}
+
+// Tahrirlash: −10 / +10 and typing change the field only; the form writes it on Saqlash.
+export function StockField({ value, onChange, threshold }: { value: string; onChange(v: string): void; threshold: number }) {
+  const n = Number(value) || 0;
+  return (
+    <div className="cell border-b border-ink">
+      <label htmlFor="stock-field" className="caption">
+        {uz.inventory.stockOnHand}
+      </label>
+      <div className="mt-1 flex h-11 items-stretch overflow-hidden rounded-sm border border-ink">
         <button
           type="button"
-          onClick={() => step(-STEP)}
-          disabled={busy || value <= 0}
+          onClick={() => onChange(stepStock(value, -STEP))}
+          disabled={n <= 0}
           aria-label={`−${STEP}`}
-          className="flex w-12 items-center justify-center gap-0.5 border-r border-ink text-xs font-bold hover:bg-paper disabled:opacity-40"
+          className="flex w-16 items-center justify-center gap-0.5 border-r border-ink text-sm font-bold hover:bg-paper disabled:opacity-40"
         >
-          <Minus className="size-3" aria-hidden />
+          <Minus className="size-3.5" aria-hidden />
           {STEP}
         </button>
-        {editing ? (
-          <input
-            ref={inputRef}
-            value={draft}
-            inputMode="numeric"
-            aria-label={uz.inventory.stock}
-            onChange={(e) => setDraft(e.target.value.replace(/\D/g, ""))}
-            onBlur={() => {
-              setEditing(false);
-              if (draft !== "") commit(Number(draft));
-            }}
-            onKeyDown={(e) => {
-              if (e.key === "Enter") e.currentTarget.blur();
-              if (e.key === "Escape") {
-                setDraft("");
-                setEditing(false);
-              }
-            }}
-            className="num min-w-0 flex-1 bg-sand-soft text-center text-base font-bold outline-none"
-          />
-        ) : (
-          <button
-            type="button"
-            onClick={() => {
-              setDraft(String(value));
-              setEditing(true);
-            }}
-            className={cn("num flex-1 text-base font-bold hover:bg-paper", low && "text-warn")}
-            aria-label={`${uz.inventory.stock}: ${value}`}
-          >
-            {value}
-          </button>
-        )}
+        <input
+          id="stock-field"
+          value={value}
+          inputMode="numeric"
+          onChange={(e) => onChange(e.target.value.replace(/\D/g, "").slice(0, 10))}
+          className={cn("num min-w-0 flex-1 text-center text-lg font-bold outline-none focus:bg-sand-soft", n <= threshold && "text-warn")}
+        />
         <button
           type="button"
-          onClick={() => step(STEP)}
-          disabled={busy}
+          onClick={() => onChange(stepStock(value, STEP))}
           aria-label={`+${STEP}`}
-          className="flex w-12 items-center justify-center gap-0.5 border-l border-ink text-xs font-bold hover:bg-paper disabled:opacity-40"
+          className="flex w-16 items-center justify-center gap-0.5 border-l border-ink text-sm font-bold hover:bg-paper"
         >
-          <Plus className="size-3" aria-hidden />
+          <Plus className="size-3.5" aria-hidden />
           {STEP}
         </button>
       </div>
-      <StockBar stock={value} threshold={threshold} />
+      <p className="mt-1.5 text-xs text-ink-3">{uz.inventory.stockHint}</p>
     </div>
   );
 }

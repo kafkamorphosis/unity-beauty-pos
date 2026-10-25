@@ -119,6 +119,8 @@ export const uz = {
     restockDone: (n: number) => `${n} ta qoʻshildi`,
     newProductTitle: "Yangi mahsulot",
     editTitle: "Mahsulotni tahrirlash",
+    stockOnHand: "Ombordagi miqdor",
+    stockHint: "Faqat «Saqlash» bosilganda oʻzgaradi. Yangi tovar kelsa, «Mahsulot qoʻshish»da shtrix-kodni skanerlang.",
     scanOrType: "Shtrix-kodni skanerlang yoki kiriting",
     next: "Davom etish",
     created: "Mahsulot qoʻshildi",

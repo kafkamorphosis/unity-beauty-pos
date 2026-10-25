@@ -10,14 +10,16 @@ import type { Product } from "@/lib/database.types";
 import { findProductByBarcode } from "@/lib/data/products";
 import { uploadProductPhoto } from "@/lib/data/storage";
 import { errorMessage } from "@/lib/domain/errors";
+import { stockToSave } from "@/lib/domain/stock";
 import { supabaseBrowser } from "@/lib/supabase/client";
 import { uz } from "@/lib/i18n/uz";
 import { cn } from "@/lib/utils";
 import { resizeImage } from "./resize-image";
+import { StockField } from "./stock-stepper";
 
 const MAX_NUMBER = 2_000_000_000;
 
-type Fields = { name: string; cost: string; retail: string; wholesale: string; weight: string; qty: string; threshold: string };
+type Fields = { name: string; cost: string; retail: string; wholesale: string; weight: string; qty: string; threshold: string; stock: string };
 
 function NumCell({
   label,
@@ -77,7 +79,10 @@ export function ProductForm({
     weight: product ? String(product.weight_g) : "",
     qty: "0",
     threshold: String(product?.low_stock_threshold ?? 10),
+    stock: String(product?.stock ?? 0),
   });
+  // The stock this form was opened with: saving refuses if another device changed it meanwhile.
+  const [originalStock, setOriginalStock] = useState(product?.stock ?? 0);
   const [photo, setPhoto] = useState<File | null>(null);
   const [removePhoto, setRemovePhoto] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -110,6 +115,21 @@ export function ProductForm({
 
     try {
       let saved: Product;
+      // Stock first: if it moved on another device, nothing else is saved and the field shows the new value.
+      const newStock = product ? stockToSave(originalStock, f.stock) : null;
+      if (product && newStock !== null) {
+        const { error } = await sb.rpc("adjust_stock", { p_product_id: product.id, p_new_stock: newStock, p_expected_stock: originalStock });
+        if (error) {
+          if (error.message === "STOCK_CHANGED") {
+            const { data: fresh } = await sb.from("products").select("stock").eq("id", product.id).single();
+            if (fresh) {
+              setOriginalStock(fresh.stock);
+              setF((s) => ({ ...s, stock: String(fresh.stock) }));
+            }
+          }
+          throw error;
+        }
+      }
       if (product) {
         const { data, error } = await sb
           .from("products")
@@ -229,6 +249,7 @@ export function ProductForm({
         {!editing && <NumCell label={uz.inventory.startQty} value={f.qty} onChange={set("qty")} className="sm:border-r" />}
         <NumCell label={uz.inventory.threshold} value={f.threshold} onChange={set("threshold")} />
       </div>
+      {editing && <StockField value={f.stock} onChange={set("stock")} threshold={Number(f.threshold || 10)} />}
 
       {error && (
         <p role="alert" className="border-b border-ink bg-danger-soft px-3 py-2.5 text-sm font-medium text-danger">

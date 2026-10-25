@@ -31,7 +31,7 @@ import { uz } from "@/lib/i18n/uz";
 import { cn } from "@/lib/utils";
 import { AddProductFlow, lookupStep, type AddStep } from "./add-product-flow";
 import { ProductForm } from "./product-form";
-import { StockStepper } from "./stock-stepper";
+import { StockReadout } from "./stock-stepper";
 
 type Sort = "name" | "stock";
 
@@ -249,7 +249,7 @@ export function InventoryScreen() {
                       <td className="px-3 py-2 text-right font-semibold"><Krw value={p.wholesale_price} /></td>
                       <td className="px-3 py-2 text-right text-ink-2"><Weight grams={p.weight_g} /></td>
                       <td className="px-3 py-2">
-                        <StockStepper productId={p.id} stock={p.stock} threshold={p.low_stock_threshold} />
+                        <StockReadout stock={p.stock} threshold={p.low_stock_threshold} />
                       </td>
                       <td className="px-2 py-2">
                         <RowMenu onEdit={() => setEditing(p)} onArchive={() => setArchiving(p)} />
@@ -293,7 +293,7 @@ export function InventoryScreen() {
                     </dl>
                     <div className="flex items-center justify-between gap-3">
                       <span className="text-sm text-ink-2"><Weight grams={p.weight_g} /></span>
-                      <StockStepper productId={p.id} stock={p.stock} threshold={p.low_stock_threshold} />
+                      <StockReadout stock={p.stock} threshold={p.low_stock_threshold} />
                     </div>
                   </li>
                 );
