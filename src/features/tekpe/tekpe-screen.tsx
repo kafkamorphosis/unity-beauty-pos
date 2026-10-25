@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { Check, PackageCheck, Printer, QrCode, Truck } from "lucide-react";
 import { toast } from "sonner";
@@ -20,26 +21,32 @@ import { supabaseBrowser } from "@/lib/supabase/client";
 import { uz } from "@/lib/i18n/uz";
 import { cn } from "@/lib/utils";
 import { ApproveActions } from "@/features/orders/approve-actions";
+import { BoxesTab } from "./boxes-tab";
 import { ReadyScanDialog } from "./ready-scan-dialog";
 
-type Tab = "pending" | "new" | "ready" | "picked_up";
+type OrderTab = "pending" | "new" | "ready" | "picked_up";
+type Tab = OrderTab | "boxes";
 const PAGE = 100;
-const TABS: Tab[] = ["pending", "new", "ready", "picked_up"];
+const ORDER_TABS: OrderTab[] = ["pending", "new", "ready", "picked_up"];
+const TABS: Tab[] = ["pending", "boxes", "new", "ready", "picked_up"];
 
-async function countStatus(status: Tab): Promise<number> {
+// Seller orders in a box move with their box (Qutilar tab), not one by one.
+async function countStatus(status: OrderTab): Promise<number> {
   const { count } = await supabaseBrowser()
     .from("orders")
     .select("id", { count: "exact", head: true })
     .eq("type", "tekpe")
-    .eq("status", status);
+    .eq("status", status)
+    .is("box_id", null);
   return count ?? 0;
 }
 
 export function TekpeScreen() {
-  const [tab, setTab] = useState<Tab>("new");
+  const sp = useSearchParams();
+  const [tab, setTab] = useState<Tab>(sp.get("tab") === "boxes" ? "boxes" : "new");
   const [autoTab, setAutoTab] = useState(true);
   const [data, setData] = useState<{ tab: Tab; rows: OrderListRow[] } | null>(null);
-  const [counts, setCounts] = useState<Record<Tab, number> | null>(null);
+  const [counts, setCounts] = useState<Record<OrderTab, number> | null>(null);
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [scanning, setScanning] = useState(false);
   const [busy, setBusy] = useState(false);
@@ -53,8 +60,8 @@ export function TekpeScreen() {
     (async () => {
       try {
         const [{ rows }, ...c] = await Promise.all([
-          listOrders(supabaseBrowser(), { type: "tekpe", status: tab }, limit),
-          ...TABS.map(countStatus),
+          tab === "boxes" ? Promise.resolve({ rows: [] as OrderListRow[] }) : listOrders(supabaseBrowser(), { type: "tekpe", status: tab, noBox: true }, limit),
+          ...ORDER_TABS.map(countStatus),
         ]);
         if (cancelled) return;
         setData({ tab, rows });
@@ -113,7 +120,7 @@ export function TekpeScreen() {
       </PageHeader>
 
       <div className="waybill">
-        <div role="tablist" aria-label={uz.tekpe.title} className="grid grid-cols-2 border-b border-ink sm:grid-cols-4 max-sm:[&>*:nth-child(-n+2)]:border-b max-sm:[&>*:nth-child(3)]:border-l-0">
+        <div role="tablist" aria-label={uz.tekpe.title} className="flex overflow-x-auto border-b border-ink sm:grid sm:grid-cols-5">
           {TABS.map((t, i) => (
             <button
               key={t}
@@ -127,15 +134,17 @@ export function TekpeScreen() {
                 setSelected(new Set());
               }}
               className={cn(
-                "flex items-center justify-center gap-2 px-3 py-3 text-sm font-semibold transition-colors duration-150",
+                "flex shrink-0 items-center justify-center gap-2 px-3 py-3 text-sm font-semibold whitespace-nowrap transition-colors duration-150 max-sm:flex-1",
                 i > 0 && "border-l border-ink",
                 tab === t ? "bg-ink text-cell" : "hover:bg-paper",
               )}
             >
-              {uz.status[t]}
-              <span className={cn("num rounded-sm px-1.5 text-xs font-bold", tab === t ? "bg-cell text-ink" : "bg-paper text-ink-2")}>
-                {counts ? counts[t] : "·"}
-              </span>
+              {t === "boxes" ? uz.tekpe.boxesTab : uz.status[t]}
+              {t !== "boxes" && (
+                <span className={cn("num rounded-sm px-1.5 text-xs font-bold", tab === t ? "bg-cell text-ink" : "bg-paper text-ink-2")}>
+                  {counts ? counts[t] : "·"}
+                </span>
+              )}
             </button>
           ))}
         </div>
@@ -158,14 +167,16 @@ export function TekpeScreen() {
           </div>
         )}
 
-        {rows === null ? (
+        {tab === "boxes" ? (
+          <BoxesTab />
+        ) : rows === null ? (
           <div className="grid gap-px">
             {Array.from({ length: 5 }, (_, i) => (
               <Skeleton key={i} className="h-16 rounded-none" />
             ))}
           </div>
         ) : rows.length === 0 ? (
-          <p className="px-4 py-12 text-center text-ink-2">{uz.tekpe.empty[tab]}</p>
+          <p className="px-4 py-12 text-center text-ink-2">{uz.tekpe.empty[tab as OrderTab]}</p>
         ) : (
           <ul>
             {rows.map((o) => (
@@ -226,7 +237,7 @@ export function TekpeScreen() {
             ))}
           </ul>
         )}
-        {rows && counts && rows.length < counts[tab] && (
+        {tab !== "boxes" && rows && counts && rows.length < counts[tab] && (
           <div className="border-t border-ink p-2 text-center">
             <Button variant="outline" onClick={() => setLimit((l) => l + PAGE)}>
               {uz.tekpe.loadMore(counts[tab] - rows.length)}

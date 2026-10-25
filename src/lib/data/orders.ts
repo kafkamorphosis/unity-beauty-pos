@@ -15,6 +15,7 @@ export type OrderWithItems = Order & {
   readyBy: Person;
   pickedUpBy: Person;
   cancelledBy: Person;
+  box: { box_no: number; status: "open" | "closed" | "picked_up" } | null;
 };
 
 const ORDER_WITH_ITEMS = [
@@ -26,6 +27,7 @@ const ORDER_WITH_ITEMS = [
   "readyBy:profiles!orders_ready_by_fkey(full_name)",
   "pickedUpBy:profiles!orders_picked_up_by_fkey(full_name)",
   "cancelledBy:profiles!orders_cancelled_by_fkey(full_name)",
+  "box:boxes(box_no, status)",
 ].join(", ");
 
 export async function getOrderWithItems(sb: SB, id: string): Promise<OrderWithItems | null> {
@@ -47,6 +49,8 @@ export type OrderFilters = {
   type?: OrderType;
   sellerId?: string;
   customerId?: string;
+  /** Leave out seller orders packed in a box. */
+  noBox?: boolean;
   from?: string; // YYYY-MM-DD, Seoul
   to?: string; // YYYY-MM-DD, Seoul, inclusive
   q?: string;
@@ -66,6 +70,7 @@ export async function listOrders(sb: SB, f: OrderFilters, pageSize = 50): Promis
   if (f.type) q = q.eq("type", f.type);
   if (f.sellerId) q = q.eq("seller_id", f.sellerId);
   if (f.customerId) q = q.eq("customer_id", f.customerId);
+  if (f.noBox) q = q.is("box_id", null);
   if (f.from) q = q.gte("created_at", seoulDayStart(f.from));
   if (f.to) q = q.lt("created_at", seoulDayEndExclusive(f.to));
   if (search?.kind === "orderNo") q = q.eq("order_no", search.value);

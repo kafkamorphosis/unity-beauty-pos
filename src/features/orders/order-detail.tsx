@@ -25,7 +25,7 @@ import type { OrderWithItems } from "@/lib/data/orders";
 import { formatDateTime } from "@/lib/domain/dates";
 import { errorMessage } from "@/lib/domain/errors";
 import { formatKg, formatKrw, formatUsd } from "@/lib/domain/money";
-import { formatOrderNo } from "@/lib/domain/order-no";
+import { formatBoxNo, formatOrderNo } from "@/lib/domain/order-no";
 import { formatOrderTotal } from "@/lib/domain/order-total";
 import { formatPhone } from "@/lib/domain/phone";
 import { orderTypeLabel } from "@/lib/i18n/labels";
@@ -75,13 +75,14 @@ export function OrderDetail({ order }: { order: OrderWithItems }) {
         </Button>
         <div className="flex gap-2">
           {order.status === "pending" && <ApproveActions order={order} onDone={() => router.refresh()} size="default" />}
-          {order.status !== "cancelled" && order.status !== "pending" && (
+          {order.status !== "cancelled" && order.status !== "pending" && (!order.box || order.box.status === "open") && (
             <Button variant="destructive" onClick={() => setConfirming(true)}>
               <Ban aria-hidden />
               {uz.orders.cancel}
             </Button>
           )}
-          {order.status !== "pending" && (
+          {/* Boxed seller orders print on their box list. */}
+          {order.status !== "pending" && !order.box_id && (
             <Button onClick={() => printOrder(order.id)}>
               <Printer aria-hidden />
               {uz.common.print}
@@ -108,6 +109,16 @@ export function OrderDetail({ order }: { order: OrderWithItems }) {
           <Field label={uz.orders.type}>{orderTypeLabel(order)}</Field>
           <Field label={uz.orders.payment}>{uz.payment[order.payment_method]}</Field>
           <Field label={uz.orders.seller}>{order.seller?.full_name ?? "—"}</Field>
+          {(order.ship_city || order.box) && (
+            <Field label={uz.seller.address} className="col-span-2 md:col-span-5 border-t border-rule-soft">
+              {[order.ship_city, order.ship_district].filter(Boolean).join(", ") || "—"}
+              {order.box && (
+                <span className="num ml-2 font-normal text-ink-2">
+                  · {uz.seller.box} {formatBoxNo(order.box.box_no)} ({uz.tekpe.boxStatus[order.box.status]})
+                </span>
+              )}
+            </Field>
+          )}
         </div>
 
         <div className="hidden overflow-x-auto md:block">

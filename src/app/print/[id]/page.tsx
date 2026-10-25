@@ -12,7 +12,7 @@ import { getOrderWithItems } from "@/lib/data/orders";
 import { formatOrderNo } from "@/lib/domain/order-no";
 import { supabaseServer } from "@/lib/supabase/server";
 import { uz } from "@/lib/i18n/uz";
-import "./print.css";
+import "../print.css";
 
 export async function generateMetadata({ params }: PageProps<"/print/[id]">): Promise<Metadata> {
   const { id } = await params;

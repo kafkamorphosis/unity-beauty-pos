@@ -189,6 +189,7 @@ export function OrdersScreen() {
                     <td className="px-3 py-2.5">
                       <span className="block font-semibold">{o.customer?.name || "—"}</span>
                       {o.customer && <span className="num block text-xs text-ink-3">{formatPhone(o.customer.phone)}</span>}
+                      {o.ship_city && <span className="block text-xs text-ink-3">{[o.ship_city, o.ship_district].filter(Boolean).join(", ")}</span>}
                     </td>
                     <td className="hidden px-3 py-2.5 text-ink-2 xl:table-cell">{o.seller?.full_name}</td>
                     <td className="px-3 py-2.5 whitespace-nowrap">{orderTypeLabel(o)}</td>
