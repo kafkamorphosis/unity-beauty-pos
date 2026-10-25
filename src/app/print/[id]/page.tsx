@@ -27,6 +27,16 @@ export default async function PrintPage({ params, searchParams }: PageProps<"/pr
   const order = await getOrderWithItems(await supabaseServer(), id).catch(() => null);
   if (!order) notFound();
   // A pending seller order has taken no stock yet and may still be rejected: no parcel sheet.
+  if (order.box_id) {
+    return (
+      <div className="mx-auto max-w-md px-4 py-16 text-center">
+        <p className="text-lg font-bold">{uz.sheet.boxedTitle(formatOrderNo(order.order_no))}</p>
+        <Button asChild variant="outline" className="mt-6">
+          <Link href={`/print/box/${order.box_id}`}>{uz.sheet.openBoxList}</Link>
+        </Button>
+      </div>
+    );
+  }
   if (order.status === "pending") {
     return (
       <div className="mx-auto max-w-md px-4 py-16 text-center">

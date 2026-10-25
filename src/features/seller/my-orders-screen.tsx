@@ -44,7 +44,10 @@ export function MyOrdersScreen() {
     () =>
       listMyOrders(supabaseBrowser(), PAGE, 0)
         .then((fresh) => {
-          if (!loaded.current) setMore(fresh.length === PAGE);
+          if (!loaded.current) {
+            setMore(fresh.length === PAGE);
+            if (fresh[0]?.destination) setCountry(fresh[0].destination);
+          }
           loaded.current = true;
           setRows((prev) => mergeFresh(prev, fresh));
         })

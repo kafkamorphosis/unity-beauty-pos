@@ -41,6 +41,12 @@ alter table public.orders
   add column ship_district text;
 create index orders_box_idx on public.orders (box_id) where box_id is not null;
 
+-- Seller orders still waiting for approval were priced with per-order shipping; from now on their
+-- shipping is charged on the box, so it is cleared here to avoid charging it twice.
+update public.orders o set shipping_krw = 0, shipping_usd = 0, shipping_kg = 0
+from public.profiles p
+where p.id = o.seller_id and p.role = 'seller' and o.status = 'pending' and o.type = 'tekpe';
+
 -- The open box of a seller and destination, created when there is none. Locks it, so a box being
 -- closed right now is waited for and then skipped.
 create function public.open_box_for(p_seller uuid, p_destination public.destination) returns uuid
@@ -227,6 +233,7 @@ declare
   v_uid uuid := public.require_pos_role();
   v_order public.orders;
   v_item record;
+  v_box uuid;
 begin
   select * into v_order from public.orders where id = p_order_id for update;
   if not found then
@@ -238,6 +245,7 @@ begin
   if v_order.box_id is not null and exists (select 1 from public.boxes where id = v_order.box_id and status <> 'open') then
     raise exception 'BOX_CLOSED';
   end if;
+  v_box := v_order.box_id;
 
   if v_order.status <> 'pending' then
     for v_item in
@@ -253,6 +261,11 @@ begin
   update public.orders set status = 'cancelled', cancelled_at = now(), cancelled_by = v_uid, box_id = null
   where id = p_order_id
   returning * into v_order;
+  -- An open box left with no orders disappears instead of lingering empty in Qutilar.
+  if v_box is not null then
+    delete from public.boxes b
+    where b.id = v_box and b.status = 'open' and not exists (select 1 from public.orders o where o.box_id = b.id);
+  end if;
   return v_order;
 end $$;
 

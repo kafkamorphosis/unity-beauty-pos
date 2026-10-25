@@ -77,11 +77,18 @@ begin
   select * into k3 from public.approve_order(k3.id);
   assert k3.box_id is not null and k3.box_id <> kr_box, 'new open box after closing';
   perform public.cancel_order(k3.id);
-  perform pg_temp.expect_error(format('select public.close_box(%L)', (select box_id from public.orders where id = k3.id)), 'BOX_NOT_FOUND');
-  perform pg_temp.expect_error(format('select public.close_box(%L)', (select id from public.boxes where seller_id = s and status = 'open' and destination = 'KR')), 'BOX_EMPTY');
+  select count(*) into v_n from public.boxes where id = k3.box_id;
+  assert v_n = 0, 'an open box emptied by a cancel is removed';
+  perform pg_temp.expect_error(format('select public.close_box(%L)', k3.box_id), 'BOX_NOT_FOUND');
 
   -- hand over
-  perform pg_temp.expect_error(format('select public.box_picked_up(%L)', (select id from public.boxes where seller_id = s and status = 'open' and destination = 'KR')), 'INVALID_STATUS_TRANSITION');
+  perform pg_temp.logout();
+  update public.boxes set status = 'open' where id = uz_box;  -- an open box can't be picked up
+  perform pg_temp.login_as(m);
+  perform pg_temp.expect_error(format('select public.box_picked_up(%L)', uz_box), 'INVALID_STATUS_TRANSITION');
+  perform pg_temp.logout();
+  update public.boxes set status = 'closed' where id = uz_box;
+  perform pg_temp.login_as(m);
   select * into b from public.box_picked_up(kr_box);
   assert b.status = 'picked_up' and b.picked_up_by = m, 'box picked up';
   select status::text into v_text from public.orders where id = k1.id;

@@ -81,9 +81,11 @@ export function TekpeDialog({
                   )}
                 >
                   <span className="text-base font-bold">{uz.destination[d]}</span>
-                  <span className={cn("num text-sm", destination === d ? "text-cell/80" : "text-ink-2")}>
-                    {s ? (d === "KR" ? `${formatKrw(s.shippingKrw)} · ${uz.checkout.perOrder}` : `${s.shippingKg} kg · ${formatUsd(s.shippingUsd)}`) : "…"}
-                  </span>
+                  {!showAddress && (
+                    <span className={cn("num text-sm", destination === d ? "text-cell/80" : "text-ink-2")}>
+                      {s ? (d === "KR" ? `${formatKrw(s.shippingKrw)} · ${uz.checkout.perOrder}` : `${s.shippingKg} kg · ${formatUsd(s.shippingUsd)}`) : "…"}
+                    </span>
+                  )}
                 </button>
               );
             })}
@@ -142,7 +144,13 @@ export function TekpeDialog({
 
         {showPayment && <PaymentPicker id="tekpe-payment" value={state.payment} onChange={(payment) => onChange({ payment })} />}
 
-        {shipping && (
+        {showAddress ? (
+          <div className="cell border-b border-ink">
+            <span className="caption">{uz.checkout.total}</span>
+            <p className="monument text-2xl">{formatKrw(totals.subtotal)}</p>
+            <p className="text-xs text-ink-3">{uz.checkout.shippingOnBox}</p>
+          </div>
+        ) : shipping && (
           <div className="grid grid-cols-2 border-b border-ink">
             <div className="cell border-r border-ink">
               <span className="caption">{uz.checkout.shipping}</span>

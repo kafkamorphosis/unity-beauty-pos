@@ -81,6 +81,12 @@ export function BoxesTab() {
     setClosing(null);
     if (error) {
       toast.error(errorMessage(error));
+    } else if (window.matchMedia("(pointer: coarse)").matches) {
+      // After the await the tap no longer counts, and a new tab would be blocked as a popup.
+      toast.success(uz.tekpe.boxClosed(formatBoxNo(box.box_no)), {
+        duration: 15_000,
+        action: { label: uz.common.print, onClick: () => printBox(box.id) },
+      });
     } else {
       toast.success(uz.tekpe.boxClosed(formatBoxNo(box.box_no)));
       printBox(box.id);
