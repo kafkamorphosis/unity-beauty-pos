@@ -92,13 +92,13 @@ begin
   update public.orders set created_at = created_at - interval '5 years';
   update public.app_secrets set telegram_enabled = false;
   perform pg_temp.login_as(s1);
-  select * into o from public.submit_seller_order(gen_random_uuid(), jsonb_build_array(jsonb_build_object('product_id', a, 'qty', 3)), '+821012345678', 'Ali', 'cash', 'KR');
+  select * into o from public.submit_seller_order(gen_random_uuid(), jsonb_build_array(jsonb_build_object('product_id', a, 'qty', 3)), '+821012345678', 'Ali', 'Seul', 'Gangnam', 'cash', 'KR');
   perform pg_temp.logout();
   perform pg_temp.login_as(m);
   perform public.approve_order(o.id);
   perform pg_temp.logout();
   perform pg_temp.login_as(s2);
-  select * into o from public.submit_seller_order(gen_random_uuid(), jsonb_build_array(jsonb_build_object('product_id', a, 'qty', 1)), '+821012345678', 'Ali', 'cash', 'KR');
+  select * into o from public.submit_seller_order(gen_random_uuid(), jsonb_build_array(jsonb_build_object('product_id', a, 'qty', 1)), '+821012345678', 'Ali', 'Seul', 'Gangnam', 'cash', 'KR');
   perform pg_temp.logout();
   perform pg_temp.login_as(m);
   perform public.approve_order(o.id);

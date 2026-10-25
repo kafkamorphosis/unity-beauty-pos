@@ -22,14 +22,14 @@ begin
 
   -- submit
   perform pg_temp.login_as(s);
-  select * into o from public.submit_seller_order(r1, two, '+821012345678', 'Ali', 'card', 'UZ');
+  select * into o from public.submit_seller_order(r1, two, '+821012345678', 'Ali', 'Seul', 'Gangnam', 'card', 'UZ');
   assert o.status = 'pending' and o.type = 'tekpe' and o.destination = 'UZ', 'pending tekpe order';
   assert o.seller_id = s, 'seller recorded';
-  assert o.subtotal = 20000 and o.item_count = 2 and o.shipping_kg = 2 and o.shipping_usd = 20, 'snapshot totals';
-  select * into o2 from public.submit_seller_order(r1, two, '+821012345678', 'Ali', 'card', 'UZ');
+  assert o.subtotal = 20000 and o.item_count = 2 and o.shipping_kg = 0 and o.shipping_usd = 0, 'snapshot totals; shipping goes on the box';
+  select * into o2 from public.submit_seller_order(r1, two, '+821012345678', 'Ali', 'Seul', 'Gangnam', 'card', 'UZ');
   assert o2.id = o.id, 'same request id returns the same order';
-  perform pg_temp.expect_error(format('select public.submit_seller_order(gen_random_uuid(), %L::jsonb, ''+821012345678'', '' '', ''cash'', ''KR'')', one), 'TEKPE_NEEDS_CUSTOMER');
-  perform pg_temp.expect_error(format('select public.submit_seller_order(gen_random_uuid(), %L::jsonb, ''+821012345678'', ''Ali'', ''cash'', null)', one), 'TEKPE_NEEDS_DESTINATION');
+  perform pg_temp.expect_error(format('select public.submit_seller_order(gen_random_uuid(), %L::jsonb, ''+821012345678'', '' '', ''Seul'', ''Gangnam'', ''cash'', ''KR'')', one), 'TEKPE_NEEDS_CUSTOMER');
+  perform pg_temp.expect_error(format('select public.submit_seller_order(gen_random_uuid(), %L::jsonb, ''+821012345678'', ''Ali'', ''Seul'', ''Gangnam'', ''cash'', null)', one), 'TEKPE_NEEDS_DESTINATION');
   perform pg_temp.expect_error(format('select public.approve_order(%L)', o.id), 'NOT_AUTHORIZED');
   perform pg_temp.logout();
 
@@ -44,7 +44,7 @@ begin
 
   -- approve
   perform pg_temp.login_as(m);
-  perform pg_temp.expect_error(format('select public.submit_seller_order(gen_random_uuid(), %L::jsonb, ''+821012345678'', ''Ali'', ''cash'', ''KR'')', one), 'NOT_AUTHORIZED');
+  perform pg_temp.expect_error(format('select public.submit_seller_order(gen_random_uuid(), %L::jsonb, ''+821012345678'', ''Ali'', ''Seul'', ''Gangnam'', ''cash'', ''KR'')', one), 'NOT_AUTHORIZED');
   select * into o from public.approve_order(o.id);
   assert o.status = 'new' and o.approved_by = m and o.approved_at is not null, 'approved';
   perform pg_temp.expect_error(format('select public.approve_order(%L)', o.id), 'INVALID_STATUS_TRANSITION');
@@ -57,14 +57,14 @@ begin
 
   -- price snapshot survives a price change; an archived product blocks approval
   perform pg_temp.login_as(s);
-  select * into o2 from public.submit_seller_order(gen_random_uuid(), one, '+821012345678', 'Ali', 'cash', 'KR');
-  select * into o3 from public.submit_seller_order(gen_random_uuid(), one, '+821012345678', 'Ali', 'cash', 'KR');
-  select * into o4 from public.submit_seller_order(gen_random_uuid(), one, '+821012345678', 'Ali', 'cash', 'KR');
+  select * into o2 from public.submit_seller_order(gen_random_uuid(), one, '+821012345678', 'Ali', 'Seul', 'Gangnam', 'cash', 'KR');
+  select * into o3 from public.submit_seller_order(gen_random_uuid(), one, '+821012345678', 'Ali', 'Seul', 'Gangnam', 'cash', 'KR');
+  select * into o4 from public.submit_seller_order(gen_random_uuid(), one, '+821012345678', 'Ali', 'Seul', 'Gangnam', 'cash', 'KR');
   perform pg_temp.logout();
   update public.products set retail_price = 99999 where id = p;
   perform pg_temp.login_as(m);
   select * into o2 from public.approve_order(o2.id);
-  assert o2.subtotal = 10000 and o2.shipping_krw = 4000, 'approval keeps the seller''s prices';
+  assert o2.subtotal = 10000 and o2.shipping_krw = 0, 'approval keeps the seller''s prices';
   perform public.cancel_order(o4.id);
   perform pg_temp.logout();
   select stock into v_n from public.products where id = p;
