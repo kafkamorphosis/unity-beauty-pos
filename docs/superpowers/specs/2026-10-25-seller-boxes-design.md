@@ -17,6 +17,9 @@ one for Uzbekistan), with one printed list so the seller knows whose package is 
 - Decisions: the manager closes a box (then a new one starts); shipping is charged per box; the box
   goes to the seller; one A4 list is printed per box.
 
+- Stock quantity in Ombor may only be changed through **Tahrirlash**, so it can't be changed by
+  accident on the list.
+
 Nothing else: no autofill, no seller addresses, no QR on the box, no billing, no Telegram changes.
 
 ## Data
@@ -56,6 +59,16 @@ Nothing else: no autofill, no seller addresses, no QR on the box, no billing, no
 - Order detail and Buyurtmalar show the box number and city/district for seller orders; the per-order
   print button is hidden for orders in a box.
 
+## Ombor: stock only through Tahrirlash
+
+- The product list shows stock read-only (number and the low-stock bar); the inline ±10 stepper and
+  tap-to-type field are removed from the list (desktop table and phone cards).
+- The Tahrirlash dialog gets an *Ombordagi miqdor* field with −10 / +10 buttons and direct typing.
+  Nothing is written until **Saqlash**; then the new quantity is saved with `adjust_stock(id, new,
+  expected)`, so a change made on another device meanwhile raises `STOCK_CHANGED` instead of being
+  overwritten. A stock change is recorded as an `adjust` movement, as today.
+- Kirim (restock with cost) and sales are unchanged.
+
 ## Statistika
 
 Box shipping counts in the shipping totals on the day the box is closed (seller scope = box seller).
@@ -67,3 +80,5 @@ open box per seller and destination; close computes shipping (KR flat, UZ rounde
 orders `ready`; next approval opens a new box; picked up cascades; cancel in open box detaches,
 in closed box refuses; sellers see only their own boxes; manager-only close/pick-up.
 Unit: grouping of seller orders by box for Buyurtmalarim.
+Ombor: the edit form only calls `adjust_stock` when the quantity changed, with the quantity it was
+opened with as the expected value (covered by the existing 04_stock tests for the RPC).
