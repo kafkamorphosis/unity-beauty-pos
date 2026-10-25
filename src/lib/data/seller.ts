@@ -26,6 +26,11 @@ export type MyOrder = {
   ready_at: string | null;
   picked_up_at: string | null;
   cancelled_at: string | null;
+  ship_city: string | null;
+  ship_district: string | null;
+  box_id: string | null;
+  box_no: number | null;
+  box_status: "open" | "closed" | "picked_up" | null;
   customer: { name: string | null; phone: string } | null;
 };
 
@@ -70,6 +75,8 @@ export async function submitSellerOrder(
     items: { product_id: string; qty: number; is_wholesale: boolean }[];
     phone: string;
     name: string;
+    city: string;
+    district: string;
     payment: PaymentMethod;
     destination: Destination;
   },
@@ -80,6 +87,8 @@ export async function submitSellerOrder(
     p_items: args.items as unknown as Json,
     p_customer_phone: args.phone,
     p_customer_name: args.name,
+    p_city: args.city,
+    p_district: args.district,
     p_payment_method: args.payment,
     p_destination: args.destination,
   });

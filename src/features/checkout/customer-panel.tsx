@@ -19,6 +19,9 @@ export type CustomerState = {
   phone: string;
   name: string;
   payment: PaymentMethod;
+  /** Seller orders only: where the client is, for the box list. */
+  city?: string;
+  district?: string;
 };
 
 export function CustomerPanel({

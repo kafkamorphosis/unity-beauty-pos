@@ -5,6 +5,7 @@ export type Json = string | number | boolean | null | { [key: string]: Json | un
 type OrderRow = {
   approved_at: string | null;
   approved_by: string | null;
+  box_id: string | null;
   cancelled_at: string | null;
   cancelled_by: string | null;
   cost_total: number;
@@ -23,6 +24,8 @@ type OrderRow = {
   ready_by: string | null;
   request_id: string;
   seller_id: string;
+  ship_city: string | null;
+  ship_district: string | null;
   shipping_kg: number;
   shipping_krw: number;
   shipping_usd: number;
@@ -30,6 +33,25 @@ type OrderRow = {
   subtotal: number;
   total_weight_g: number;
   type: Database["public"]["Enums"]["order_type"];
+};
+
+type BoxRow = {
+  id: string;
+  box_no: number;
+  seller_id: string;
+  destination: Database["public"]["Enums"]["destination"];
+  status: Database["public"]["Enums"]["box_status"];
+  order_count: number;
+  item_count: number;
+  total_weight_g: number;
+  shipping_krw: number;
+  shipping_usd: number;
+  shipping_kg: number;
+  created_at: string;
+  closed_at: string | null;
+  closed_by: string | null;
+  picked_up_at: string | null;
+  picked_up_by: string | null;
 };
 
 type ProductRow = {
@@ -54,6 +76,14 @@ export type Database = {
   __InternalSupabase: { PostgrestVersion: "14.18" };
   public: {
     Tables: {
+      boxes: {
+        Row: BoxRow;
+        Insert: never;
+        Update: never;
+        Relationships: [
+          { foreignKeyName: "boxes_seller_id_fkey"; columns: ["seller_id"]; isOneToOne: false; referencedRelation: "profiles"; referencedColumns: ["id"] },
+        ];
+      };
       app_settings: {
         Row: { id: boolean; kr_shipping_krw: number; updated_at: string; uz_shipping_usd_per_kg: number };
         Insert: { id?: boolean; kr_shipping_krw?: number; updated_at?: string; uz_shipping_usd_per_kg?: number };
@@ -103,6 +133,7 @@ export type Database = {
         Relationships: [
           { foreignKeyName: "orders_cancelled_by_fkey"; columns: ["cancelled_by"]; isOneToOne: false; referencedRelation: "profiles"; referencedColumns: ["id"] },
           { foreignKeyName: "orders_customer_id_fkey"; columns: ["customer_id"]; isOneToOne: false; referencedRelation: "customers"; referencedColumns: ["id"] },
+          { foreignKeyName: "orders_box_id_fkey"; columns: ["box_id"]; isOneToOne: false; referencedRelation: "boxes"; referencedColumns: ["id"] },
           { foreignKeyName: "orders_picked_up_by_fkey"; columns: ["picked_up_by"]; isOneToOne: false; referencedRelation: "profiles"; referencedColumns: ["id"] },
           { foreignKeyName: "orders_ready_by_fkey"; columns: ["ready_by"]; isOneToOne: false; referencedRelation: "profiles"; referencedColumns: ["id"] },
           { foreignKeyName: "orders_seller_id_fkey"; columns: ["seller_id"]; isOneToOne: false; referencedRelation: "profiles"; referencedColumns: ["id"] },
@@ -179,12 +210,16 @@ export type Database = {
       };
       cancel_order: { Args: { p_order_id: string }; Returns: OrderRow };
       approve_order: { Args: { p_order_id: string }; Returns: OrderRow };
+      close_box: { Args: { p_box_id: string }; Returns: BoxRow };
+      box_picked_up: { Args: { p_box_id: string }; Returns: BoxRow };
       submit_seller_order: {
         Args: {
           p_request_id: string;
           p_items: Json;
           p_customer_phone: string;
           p_customer_name: string;
+          p_city: string;
+          p_district: string;
           p_payment_method: Database["public"]["Enums"]["payment_method"];
           p_destination: Database["public"]["Enums"]["destination"];
         };
@@ -244,6 +279,7 @@ export type Database = {
     };
     Enums: {
       app_role: "admin" | "manager" | "seller";
+      box_status: "open" | "closed" | "picked_up";
       destination: "KR" | "UZ";
       movement_kind: "restock" | "sale" | "cancel" | "adjust";
       order_status: "completed" | "pending" | "new" | "ready" | "picked_up" | "cancelled";
@@ -259,3 +295,4 @@ export type Order = Tables<"orders">;
 export type OrderItem = Tables<"order_items">;
 export type Product = Tables<"products">;
 export type Profile = Tables<"profiles">;
+export type Box = Tables<"boxes">;

@@ -26,6 +26,7 @@ export function TekpeDialog({
   busy,
   offline = false,
   showPayment = false,
+  showAddress = false,
   confirmLabel = uz.checkout.createTekpe,
   onConfirm,
 }: {
@@ -39,13 +40,16 @@ export function TekpeDialog({
   offline?: boolean;
   /** Sellers pick the payment method here; Kassa picks it in the side panel. */
   showPayment?: boolean;
+  /** Sellers also give the client's city and district (printed on the box list). */
+  showAddress?: boolean;
   confirmLabel?: string;
   onConfirm(destination: Destination): void;
 }) {
   const [destination, setDestination] = useState<Destination>("KR");
   const [touched, setTouched] = useState(false);
   const phone = normalizePhone(state.phone, state.country);
-  const missing = !phone || !state.name.trim();
+  const missingAddress = showAddress && (!state.city?.trim() || !state.district?.trim());
+  const missing = !phone || !state.name.trim() || missingAddress;
   const shipping = rates ? computeShipping({ type: "tekpe", destination, totalWeightG: totals.totalWeightG, rates }) : null;
 
   return (
@@ -111,6 +115,31 @@ export function TekpeDialog({
           />
         </label>
 
+        {showAddress && (
+          <div className="grid grid-cols-2 border-b border-ink">
+            <label className="cell border-r border-ink">
+              <span className="caption">{uz.checkout.city}</span>
+              <Input
+                value={state.city ?? ""}
+                maxLength={120}
+                onChange={(e) => onChange({ city: e.target.value })}
+                aria-invalid={(touched && !state.city?.trim()) || undefined}
+                className="mt-1 h-11 text-base"
+              />
+            </label>
+            <label className="cell">
+              <span className="caption">{uz.checkout.district}</span>
+              <Input
+                value={state.district ?? ""}
+                maxLength={120}
+                onChange={(e) => onChange({ district: e.target.value })}
+                aria-invalid={(touched && !state.district?.trim()) || undefined}
+                className="mt-1 h-11 text-base"
+              />
+            </label>
+          </div>
+        )}
+
         {showPayment && <PaymentPicker id="tekpe-payment" value={state.payment} onChange={(payment) => onChange({ payment })} />}
 
         {shipping && (
@@ -132,7 +161,7 @@ export function TekpeDialog({
 
         {touched && missing && (
           <p role="alert" className="border-b border-ink bg-danger-soft px-3 py-2.5 text-sm font-medium text-danger">
-            {uz.checkout.tekpeNeedsCustomer}
+            {showAddress ? uz.checkout.tekpeNeedsAddress : uz.checkout.tekpeNeedsCustomer}
           </p>
         )}
 

@@ -29,7 +29,7 @@ import { uz } from "@/lib/i18n/uz";
 import { CatalogGrid } from "./catalog-grid";
 
 const SELLER_CART: CartKeys = { cart: "unity.seller.cart", request: "unity.seller.request" };
-const EMPTY_CUSTOMER: CustomerState = { country: "KR", phone: "", name: "", payment: "cash" };
+const EMPTY_CUSTOMER: CustomerState = { country: "KR", phone: "", name: "", payment: "cash", city: "", district: "" };
 
 export function SellScreen() {
   const router = useRouter();
@@ -87,7 +87,9 @@ export function SellScreen() {
     if (empty || busy || !online) return;
     const phone = normalizePhone(customer.phone, customer.country);
     const name = customer.name.trim();
-    if (!phone || !name) return;
+    const city = customer.city?.trim() ?? "";
+    const district = customer.district?.trim() ?? "";
+    if (!phone || !name || !city || !district) return;
     setBusy(true);
     setFailed(null);
     const sb = supabaseBrowser();
@@ -98,6 +100,8 @@ export function SellScreen() {
       phone,
       name,
       payment: customer.payment,
+      city,
+      district,
     };
     const fp = cartFingerprint(payload);
     try {
@@ -112,7 +116,7 @@ export function SellScreen() {
       saveRequest({ id: decision.id, fp });
       const order = await submitSellerOrder(
         sb,
-        { requestId: decision.id, items: payload.items, phone, name, payment: customer.payment, destination },
+        { requestId: decision.id, items: payload.items, phone, name, city, district, payment: customer.payment, destination },
         AbortSignal.timeout(REQUEST_TIMEOUT_MS),
       );
       finishOrder();
@@ -249,6 +253,7 @@ export function SellScreen() {
         busy={busy}
         offline={!online}
         showPayment
+        showAddress
         confirmLabel={uz.seller.send}
         onConfirm={submit}
       />

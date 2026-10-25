@@ -7,6 +7,8 @@ export type Payload = {
   phone: string | null;
   name: string | null;
   payment: PaymentMethod;
+  city?: string;
+  district?: string;
 };
 
 export type StoredRequest = { id: string; fp: string } | null;
