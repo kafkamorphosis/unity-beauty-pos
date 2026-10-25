@@ -6,8 +6,8 @@ import { StatusBadge } from "@/components/status-badge";
 import { Button } from "@/components/ui/button";
 import type { MyOrderWithItems } from "@/lib/data/seller";
 import { formatDateTime } from "@/lib/domain/dates";
-import { formatKrw, formatUsd } from "@/lib/domain/money";
-import { formatOrderNo } from "@/lib/domain/order-no";
+import { formatKrw } from "@/lib/domain/money";
+import { formatBoxNo, formatOrderNo } from "@/lib/domain/order-no";
 import { formatOrderTotal } from "@/lib/domain/order-total";
 import { formatPhone } from "@/lib/domain/phone";
 import { uz } from "@/lib/i18n/uz";
@@ -53,12 +53,13 @@ export function MyOrderDetail({ order }: { order: MyOrderWithItems }) {
             {order.customer?.name || "—"}
             {order.customer && <span className="num block text-sm font-normal text-ink-2">{formatPhone(order.customer.phone)}</span>}
           </Field>
-          <Field label={uz.checkout.destination}>{order.destination ? uz.destination[order.destination] : "—"}</Field>
+          <Field label={uz.seller.address}>
+            {order.destination ? uz.destination[order.destination] : "—"}
+            <span className="block text-sm font-normal text-ink-2">{[order.ship_city, order.ship_district].filter(Boolean).join(", ") || "—"}</span>
+          </Field>
           <Field label={uz.orders.payment}>{uz.payment[order.payment_method]}</Field>
-          <Field label={uz.checkout.shipping}>
-            <span className="num">
-              {order.destination === "UZ" ? `${order.shipping_kg} kg · ${formatUsd(order.shipping_usd)}` : formatKrw(order.shipping_krw)}
-            </span>
+          <Field label={uz.seller.box}>
+            <span className="num">{order.box_no ? formatBoxNo(order.box_no) : "—"}</span>
           </Field>
         </div>
 

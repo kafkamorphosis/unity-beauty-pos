@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { formatKg, formatKrw, formatUsd, formatWeight } from "./money";
 import { formatDateTime } from "./dates";
-import { formatOrderNo } from "./order-no";
+import { formatBoxNo, formatOrderNo } from "./order-no";
 
 describe("money", () => {
   it("formats KRW with space thousands and symbol after", () => {
@@ -37,5 +37,7 @@ describe("order number", () => {
   it("pads to 6 digits", () => {
     expect(formatOrderNo(123)).toBe("#000123");
     expect(formatOrderNo(1234567)).toBe("#1234567");
+    expect(formatBoxNo(12)).toBe("#Q0012");
+    expect(formatBoxNo(123456)).toBe("#Q123456");
   });
 });

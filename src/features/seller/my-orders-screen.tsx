@@ -8,19 +8,27 @@ import { StatusBadge } from "@/components/status-badge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { listMyOrders, type MyOrder } from "@/lib/data/seller";
-import { formatDateTime } from "@/lib/domain/dates";
 import { mergeFresh } from "@/lib/domain/paging";
 import { errorMessage } from "@/lib/domain/errors";
-import { formatOrderNo } from "@/lib/domain/order-no";
-import { formatOrderTotal } from "@/lib/domain/order-total";
+import { formatBoxNo, formatOrderNo } from "@/lib/domain/order-no";
 import { formatPhone } from "@/lib/domain/phone";
-import type { OrderStatus } from "@/lib/domain/types";
+import { groupByBox, type BoxGroup } from "@/lib/domain/box-groups";
+import type { Destination } from "@/lib/domain/types";
 import { supabaseBrowser } from "@/lib/supabase/client";
 import { uz } from "@/lib/i18n/uz";
 import { cn } from "@/lib/utils";
 
 const PAGE = 50;
-const FILTERS: (OrderStatus | "")[] = ["", "pending", "new", "ready", "picked_up", "cancelled"];
+const COUNTRIES: Destination[] = ["KR", "UZ"];
+
+function groupTitle(g: BoxGroup<MyOrder>): string {
+  if (g.kind === "pending") return uz.status.pending;
+  if (g.kind === "other") return uz.status.cancelled;
+  const no = g.boxNo ? formatBoxNo(g.boxNo) : "";
+  return g.kind === "open" ? uz.seller.openBox(no) : uz.seller.closedBox(no, g.orders[0]?.box_status === "picked_up");
+}
+
+const address = (o: MyOrder) => [o.ship_city, o.ship_district].filter(Boolean).join(", ") || "—";
 // Sellers have no Realtime access to orders, so the list refreshes on focus and on a timer.
 const REFRESH_MS = 30_000;
 
@@ -28,7 +36,7 @@ export function MyOrdersScreen() {
   const [rows, setRows] = useState<MyOrder[] | null>(null);
   const [more, setMore] = useState(false);
   const [loadingMore, setLoadingMore] = useState(false);
-  const [filter, setFilter] = useState<OrderStatus | "">("");
+  const [country, setCountry] = useState<Destination>("KR");
   const loaded = useRef(false);
 
   // Refreshes only the newest page; older pages the seller loaded stay as they are.
@@ -71,29 +79,32 @@ export function MyOrdersScreen() {
     };
   }, [load]);
 
-  const shown = rows?.filter((o) => !filter || o.status === filter) ?? [];
-  const count = (s: OrderStatus | "") => rows?.filter((o) => !s || o.status === s).length ?? 0;
+  const groups = rows ? groupByBox(rows, country) : [];
+  const count = (d: Destination) => rows?.filter((o) => o.destination === d).length ?? 0;
 
   return (
     <>
       <PageHeader title={uz.seller.myOrdersTitle} />
       <div className="waybill">
-        <div role="radiogroup" aria-label={uz.orders.status} className="flex flex-wrap gap-1.5 border-b border-ink p-2">
-          {FILTERS.map((s) => (
+        <div role="radiogroup" aria-label={uz.checkout.destination} className="grid grid-cols-2 border-b border-ink">
+          {COUNTRIES.map((d, i) => (
             <button
-              key={s || "all"}
+              key={d}
               type="button"
               role="radio"
-              aria-checked={filter === s}
-              onClick={() => setFilter(s)}
+              aria-checked={country === d}
+              onClick={() => setCountry(d)}
               className={cn(
-                "h-9 rounded-sm border px-3 text-sm font-semibold transition-colors duration-150",
-                filter === s ? "border-ink bg-ink text-cell" : "border-rule-soft bg-cell hover:bg-paper",
+                "flex h-12 items-center justify-center gap-2 text-base font-bold transition-colors duration-150",
+                i > 0 && "border-l border-ink",
+                country === d ? "bg-ink text-cell" : "hover:bg-paper",
               )}
             >
-              {s ? uz.status[s] : uz.seller.all}
+              {uz.destination[d]}
               {/* Counts are exact only once every order is loaded. */}
-              {!more && <span className="num ml-1.5 opacity-70">{count(s)}</span>}
+              {!more && rows && (
+                <span className={cn("num rounded-sm px-1.5 text-xs", country === d ? "bg-cell text-ink" : "bg-paper text-ink-2")}>{count(d)}</span>
+              )}
             </button>
           ))}
         </div>
@@ -101,34 +112,73 @@ export function MyOrdersScreen() {
         {rows === null ? (
           <div className="grid gap-px">
             {Array.from({ length: 6 }, (_, i) => (
-              <Skeleton key={i} className="h-16 rounded-none" />
+              <Skeleton key={i} className="h-14 rounded-none" />
             ))}
           </div>
-        ) : shown.length === 0 ? (
+        ) : groups.length === 0 ? (
           <p className="px-4 py-12 text-center text-ink-2">{rows.length === 0 ? uz.seller.myOrdersEmpty : uz.seller.noMatch}</p>
         ) : (
-          <ul>
-            {shown.map((o) => (
-              <li key={o.id} className="border-b border-rule-soft last:border-0">
-                <Link href={`/buyurtmalarim/${o.id}`} className="grid grid-cols-[auto_1fr_auto] items-center gap-x-4 gap-y-1 px-3 py-3 hover:bg-paper active:bg-paper">
-                  <span className="monument text-xl">{formatOrderNo(o.order_no)}</span>
-                  <span className="min-w-0 text-sm">
-                    <span className="block truncate font-semibold">{o.customer?.name || "—"}</span>
-                    <span className="num block truncate text-xs text-ink-3">
-                      {o.customer ? formatPhone(o.customer.phone) : ""} · {formatDateTime(o.created_at)}
-                      {o.destination ? ` · ${uz.destination[o.destination]}` : ""}
-                    </span>
-                  </span>
-                  <span className="flex flex-col items-end gap-1">
-                    <span className={cn("num font-bold whitespace-nowrap", o.status === "cancelled" && "text-ink-3 line-through")}>
-                      {formatOrderTotal(o)}
-                    </span>
-                    <StatusBadge status={o.status} />
-                  </span>
-                </Link>
-              </li>
-            ))}
-          </ul>
+          groups.map((g) => (
+            <section key={g.key} aria-label={groupTitle(g)}>
+              <h2
+                className={cn(
+                  "flex items-center justify-between gap-2 border-b border-ink px-3 py-2 text-sm font-bold",
+                  g.kind === "pending" ? "bg-warn-soft text-warn" : g.kind === "open" ? "bg-sand-soft" : "bg-paper",
+                )}
+              >
+                <span>{groupTitle(g)}</span>
+                <span className="num text-xs font-semibold">{uz.seller.boxCount(g.orders.length, g.orders.reduce((n, o) => n + o.item_count, 0))}</span>
+              </h2>
+              <table className="hidden w-full text-sm md:table">
+                <thead className="border-b border-rule-soft text-left">
+                  <tr>
+                    <th className="caption px-3 py-1.5">{uz.seller.colName}</th>
+                    <th className="caption px-3 py-1.5 text-right">{uz.seller.colQty}</th>
+                    <th className="caption px-3 py-1.5">{uz.seller.colAddress}</th>
+                    <th className="caption px-3 py-1.5">{uz.seller.colPhone}</th>
+                    <th className="caption px-3 py-1.5">{uz.seller.colStatus}</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {g.orders.map((o) => (
+                    <tr key={o.id} className="relative border-b border-rule-soft last:border-b-ink hover:bg-paper">
+                      <td className="px-3 py-2.5">
+                        <Link href={`/buyurtmalarim/${o.id}`} className="font-semibold after:absolute after:inset-0">
+                          {o.customer?.name || "—"}
+                        </Link>
+                        <span className="num block text-xs text-ink-3">{formatOrderNo(o.order_no)}</span>
+                      </td>
+                      <td className="num px-3 py-2.5 text-right font-bold">{o.item_count}</td>
+                      <td className="px-3 py-2.5">{address(o)}</td>
+                      <td className="num px-3 py-2.5 whitespace-nowrap">{o.customer ? formatPhone(o.customer.phone) : "—"}</td>
+                      <td className="px-3 py-2.5">
+                        <StatusBadge status={o.status} />
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+              <ul className="md:hidden">
+                {g.orders.map((o) => (
+                  <li key={o.id} className="border-b border-rule-soft last:border-b-ink">
+                    <Link href={`/buyurtmalarim/${o.id}`} className="grid gap-0.5 px-3 py-2.5 active:bg-paper">
+                      <span className="flex items-baseline justify-between gap-2">
+                        <span className="truncate font-semibold">{o.customer?.name || "—"}</span>
+                        <span className="num shrink-0 font-bold">{uz.seller.qty(o.item_count)}</span>
+                      </span>
+                      <span className="flex items-center justify-between gap-2 text-sm text-ink-2">
+                        <span className="truncate">{address(o)}</span>
+                        <StatusBadge status={o.status} />
+                      </span>
+                      <span className="num text-xs text-ink-3">
+                        {o.customer ? formatPhone(o.customer.phone) : ""} · {formatOrderNo(o.order_no)}
+                      </span>
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </section>
+          ))
         )}
 
         {more && (
