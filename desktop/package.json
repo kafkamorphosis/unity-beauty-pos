@@ -1,7 +1,7 @@
 {
   "name": "unity-beauty-desktop",
   "productName": "Unity Beauty",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Unity Beauty POS — Windows ilovasi (silent A4 printing)",
   "private": true,
   "main": "main.js",

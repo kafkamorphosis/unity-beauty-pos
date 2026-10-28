@@ -12,6 +12,7 @@ if (location.protocol === "file:") {
   if (appOrigin && location.origin === appOrigin) {
     contextBridge.exposeInMainWorld("unityDesktop", {
       print: (orderId) => ipcRenderer.invoke("print-order", String(orderId)),
+      printBox: (boxId) => ipcRenderer.invoke("print-box", String(boxId)),
     });
   }
 }

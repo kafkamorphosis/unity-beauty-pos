@@ -3,7 +3,7 @@ const assert = require("node:assert/strict");
 const fs = require("node:fs");
 const os = require("node:os");
 const path = require("node:path");
-const { resolveAppUrl, isAllowedUrl, printUrl, readSettings, writeSettings, withTimeout } = require("./lib");
+const { resolveAppUrl, isAllowedUrl, printUrl, boxPrintUrl, readSettings, writeSettings, withTimeout } = require("./lib");
 
 test("resolveAppUrl: --url beats saved beats config, trailing slash removed", () => {
   assert.equal(resolveAppUrl({ argv: ["--url=https://x.vercel.app/"], saved: "https://saved.app", config: { url: "https://cfg.app" } }), "https://x.vercel.app");
@@ -34,6 +34,12 @@ test("printUrl accepts only order UUIDs", () => {
   assert.equal(printUrl("https://x.vercel.app", id), `https://x.vercel.app/print/${id}`);
   assert.throws(() => printUrl("https://x.vercel.app", "../admin"));
   assert.throws(() => printUrl("https://x.vercel.app", ""));
+});
+
+test("boxPrintUrl accepts only box UUIDs", () => {
+  const id = "6f908450-1bb7-4c88-b91f-e4fc7c2d90cc";
+  assert.equal(boxPrintUrl("https://x.vercel.app", id), `https://x.vercel.app/print/box/${id}`);
+  assert.throws(() => boxPrintUrl("https://x.vercel.app", "../admin"));
 });
 
 test("settings round-trip and tolerate a missing or corrupt file", () => {

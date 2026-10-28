@@ -1,7 +1,7 @@
 // Unity Beauty — Windows shell around the web app, adding silent A4 printing.
 const { app, BrowserWindow, ipcMain, Menu, shell } = require("electron");
 const path = require("node:path");
-const { normalizeUrl, resolveAppUrl, isAllowedUrl, isSafeExternalUrl, printUrl, readSettings, writeSettings, withTimeout } = require("./lib");
+const { normalizeUrl, resolveAppUrl, isAllowedUrl, isSafeExternalUrl, printUrl, boxPrintUrl, readSettings, writeSettings, withTimeout } = require("./lib");
 const config = require("./config.json");
 
 const DEV = process.argv.includes("--dev");
@@ -155,6 +155,12 @@ ipcMain.on("app-origin", (event) => {
 ipcMain.handle("print-order", async (event, orderId) => {
   if (!appUrl || !isAllowedUrl(event.senderFrame.url, appUrl)) throw new Error("FORBIDDEN");
   await printPage(printUrl(appUrl, orderId), readSettings(settingsFile()).printer, { requireSheet: true });
+});
+
+// Seller box lists (Tekpe → Qutilar) print the same way.
+ipcMain.handle("print-box", async (event, boxId) => {
+  if (!appUrl || !isAllowedUrl(event.senderFrame.url, appUrl)) throw new Error("FORBIDDEN");
+  await printPage(boxPrintUrl(appUrl, boxId), readSettings(settingsFile()).printer, { requireSheet: true });
 });
 
 const fromLocalPage = (event) => event.senderFrame.url.startsWith("file:");

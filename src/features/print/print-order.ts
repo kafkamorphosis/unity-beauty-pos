@@ -5,7 +5,8 @@ import { uz } from "@/lib/i18n/uz";
 
 declare global {
   interface Window {
-    unityDesktop?: { print(orderId: string): Promise<void> };
+    // printBox exists from desktop 0.2.0; older installs print box lists through the dialog.
+    unityDesktop?: { print(orderId: string): Promise<void>; printBox?(boxId: string): Promise<void> };
   }
 }
 
@@ -18,8 +19,11 @@ export function printOrder(orderId: string): void {
   printPage(`/print/${orderId}?autoprint=1`);
 }
 
-// Box lists go through the print dialog (the desktop app's silent print knows order sheets only).
 export function printBox(boxId: string): void {
+  if (window.unityDesktop?.printBox) {
+    window.unityDesktop.printBox(boxId).catch(() => toast.error(uz.common.printFailed));
+    return;
+  }
   printPage(`/print/box/${boxId}?autoprint=1`);
 }
 

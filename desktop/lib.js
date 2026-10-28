@@ -51,6 +51,11 @@ function printUrl(appUrl, orderId) {
   return `${appUrl}/print/${encodeURIComponent(orderId)}`;
 }
 
+function boxPrintUrl(appUrl, boxId) {
+  if (!UUID_RE.test(String(boxId))) throw new Error("INVALID_BOX_ID");
+  return `${appUrl}/print/box/${encodeURIComponent(boxId)}`;
+}
+
 function readSettings(file) {
   try {
     const data = JSON.parse(fs.readFileSync(file, "utf8"));
@@ -77,4 +82,4 @@ function withTimeout(promise, ms, reason) {
   ]).finally(() => clearTimeout(timer));
 }
 
-module.exports = { normalizeUrl, resolveAppUrl, isAllowedUrl, isSafeExternalUrl, printUrl, readSettings, writeSettings, withTimeout };
+module.exports = { normalizeUrl, resolveAppUrl, isAllowedUrl, isSafeExternalUrl, printUrl, boxPrintUrl, readSettings, writeSettings, withTimeout };
