@@ -93,7 +93,7 @@ export const ProductSearch = forwardRef<
         onFocus={() => results.length > 0 && setOpen(true)}
         placeholder={uz.checkout.searchPlaceholder}
         aria-label={uz.checkout.searchPlaceholder}
-        aria-keyshortcuts="F2"
+        aria-keyshortcuts="F1"
         role="combobox"
         aria-expanded={showList}
         aria-controls={listId}

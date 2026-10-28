@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
@@ -11,6 +11,7 @@ import { countLowStock, countPending } from "@/lib/data/notifications";
 import { supabaseBrowser } from "@/lib/supabase/client";
 import { uz } from "@/lib/i18n/uz";
 import { cn } from "@/lib/utils";
+import { F_KEYS, fKeyRoute } from "./fkeys";
 import { NAV, badgeCount, isActive, type NavItem, type NavKey } from "./nav-items";
 import { useOnline } from "./use-online";
 import type { Role } from "@/lib/auth/home";
@@ -57,6 +58,20 @@ export function AppShell({ navKey, user, children }: { navKey: NavKey; user: She
   const moreActive = moreItems.some((i) => isActive(pathname, i.href));
   const moreBadge = moreItems.reduce((n, i) => n + (badgeFor(i) ?? 0), 0);
 
+  // F1–F4 jump between the store screens (managers). F1 on Kassa is left to Kassa: it focuses the scan field.
+  const fKeys = navKey === "pos";
+  useEffect(() => {
+    if (!fKeys) return;
+    function onKey(e: KeyboardEvent) {
+      const route = fKeyRoute(e.key);
+      if (!route || e.ctrlKey || e.altKey || e.metaKey) return;
+      e.preventDefault();
+      if (route !== pathname) router.push(route);
+    }
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [fKeys, pathname, router]);
+
   async function signOut() {
     await supabaseBrowser().auth.signOut();
     router.replace("/login");
@@ -78,7 +93,7 @@ export function AppShell({ navKey, user, children }: { navKey: NavKey; user: She
                 key={item.href}
                 href={item.href}
                 aria-current={active ? "page" : undefined}
-                title={item.label}
+                title={fKeys && F_KEYS[item.href] ? `${item.label} (${F_KEYS[item.href]})` : item.label}
                 className={cn(
                   "flex items-center gap-2 border-r border-ink px-4 text-sm font-semibold transition-colors duration-150 xl:px-5",
                   active ? "bg-ink text-cell" : "text-ink hover:bg-paper",
@@ -87,6 +102,11 @@ export function AppShell({ navKey, user, children }: { navKey: NavKey; user: She
                 <item.icon className="size-4" aria-hidden />
                 {/* Icons only between md and xl so six destinations fit beside the logo. */}
                 <span className={cn(nav.length > 4 && "sr-only xl:not-sr-only")}>{item.label}</span>
+                {fKeys && F_KEYS[item.href] && (
+                  <kbd className={cn("num hidden rounded-sm border px-1 text-[0.65rem] leading-4 font-semibold xl:inline", active ? "border-cell/40 text-cell/80" : "border-rule-soft text-ink-3")}>
+                    {F_KEYS[item.href]}
+                  </kbd>
+                )}
                 <Badge count={badgeFor(item)} inverted={active} />
               </Link>
             );

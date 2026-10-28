@@ -224,7 +224,7 @@ export function CheckoutScreen() {
 
   useEffect(() => {
     function onKey(e: KeyboardEvent) {
-      if (e.key === "F2") {
+      if (e.key === "F1") {
         e.preventDefault();
         searchRef.current?.focus();
       } else if (e.key === "F9" && !dialogOpen) {
