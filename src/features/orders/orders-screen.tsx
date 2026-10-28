@@ -18,6 +18,7 @@ import { formatOrderTotal } from "@/lib/domain/order-total";
 import { formatPhone } from "@/lib/domain/phone";
 import type { OrderStatus, OrderType } from "@/lib/domain/types";
 import { orderTypeLabel } from "@/lib/i18n/labels";
+import { OrdersSubnav } from "./orders-subnav";
 import { supabaseBrowser } from "@/lib/supabase/client";
 import { uz } from "@/lib/i18n/uz";
 
@@ -83,6 +84,7 @@ export function OrdersScreen() {
   return (
     <>
       <PageHeader title={uz.orders.title} />
+      <OrdersSubnav />
       <div className="waybill">
         <form
           className="grid grid-cols-2 gap-2 border-b border-ink p-2 sm:flex sm:flex-wrap sm:items-center"

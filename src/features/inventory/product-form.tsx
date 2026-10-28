@@ -241,8 +241,8 @@ export function ProductForm({
 
       <div className="grid grid-cols-1 sm:grid-cols-3">
         <NumCell label={uz.inventory.cost} value={f.cost} onChange={set("cost")} required suffix="₩" className="sm:border-r" />
-        <NumCell label={uz.inventory.retail} value={f.retail} onChange={set("retail")} required suffix="₩" className="sm:border-r" />
-        <NumCell label={uz.inventory.wholesale} value={f.wholesale} onChange={set("wholesale")} required suffix="₩" />
+        <NumCell label={uz.inventory.wholesale} value={f.wholesale} onChange={set("wholesale")} required suffix="₩" className="sm:border-r" />
+        <NumCell label={uz.inventory.retail} value={f.retail} onChange={set("retail")} required suffix="₩" />
       </div>
       <div className={cn("grid grid-cols-1", editing ? "sm:grid-cols-2" : "sm:grid-cols-3")}>
         <NumCell label={uz.inventory.weight} value={f.weight} onChange={set("weight")} required suffix="g" className="sm:border-r" />

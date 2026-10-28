@@ -16,6 +16,8 @@ type OrderRow = {
   item_count: number;
   line_count: number;
   order_no: number;
+  paid_krw: number;
+  credit_due_krw: number;
   payment_method: Database["public"]["Enums"]["payment_method"];
   picked_up_at: string | null;
   picked_up_by: string | null;
@@ -76,6 +78,15 @@ export type Database = {
   __InternalSupabase: { PostgrestVersion: "14.18" };
   public: {
     Tables: {
+      credit_payments: {
+        Row: { id: string; order_id: string; amount_krw: number; paid_at: string; recorded_by: string };
+        Insert: never;
+        Update: never;
+        Relationships: [
+          { foreignKeyName: "credit_payments_order_id_fkey"; columns: ["order_id"]; isOneToOne: false; referencedRelation: "orders"; referencedColumns: ["id"] },
+          { foreignKeyName: "credit_payments_recorded_by_fkey"; columns: ["recorded_by"]; isOneToOne: false; referencedRelation: "profiles"; referencedColumns: ["id"] },
+        ];
+      };
       boxes: {
         Row: BoxRow;
         Insert: never;
@@ -210,6 +221,7 @@ export type Database = {
       };
       cancel_order: { Args: { p_order_id: string }; Returns: OrderRow };
       approve_order: { Args: { p_order_id: string }; Returns: OrderRow };
+      record_credit_payment: { Args: { p_order_id: string; p_amount: number }; Returns: OrderRow };
       close_box: { Args: { p_box_id: string }; Returns: BoxRow };
       box_picked_up: { Args: { p_box_id: string }; Returns: BoxRow };
       submit_seller_order: {
@@ -284,7 +296,7 @@ export type Database = {
       movement_kind: "restock" | "sale" | "cancel" | "adjust";
       order_status: "completed" | "pending" | "new" | "ready" | "picked_up" | "cancelled";
       order_type: "store" | "tekpe";
-      payment_method: "cash" | "card" | "transfer";
+      payment_method: "cash" | "card" | "transfer" | "credit";
     };
     CompositeTypes: { [_ in never]: never };
   };

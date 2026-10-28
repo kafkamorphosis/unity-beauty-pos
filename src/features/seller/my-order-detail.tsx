@@ -57,7 +57,14 @@ export function MyOrderDetail({ order }: { order: MyOrderWithItems }) {
             {order.destination ? uz.destination[order.destination] : "—"}
             <span className="block text-sm font-normal text-ink-2">{[order.ship_city, order.ship_district].filter(Boolean).join(", ") || "—"}</span>
           </Field>
-          <Field label={uz.orders.payment}>{uz.payment[order.payment_method]}</Field>
+          <Field label={uz.orders.payment}>
+            {uz.payment[order.payment_method]}
+            {order.payment_method === "credit" && order.status !== "cancelled" && (
+              <span className="num block text-sm font-normal text-ink-2">
+                {uz.nasiya.paidAmount}: {formatKrw(order.paid_krw)} · {uz.nasiya.left}: {formatKrw(order.credit_due_krw)}
+              </span>
+            )}
+          </Field>
           <Field label={uz.seller.box}>
             <span className="num">{order.box_no ? formatBoxNo(order.box_no) : "—"}</span>
           </Field>

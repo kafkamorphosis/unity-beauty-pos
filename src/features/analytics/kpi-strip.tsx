@@ -1,10 +1,10 @@
 import { Krw, Usd } from "@/components/money";
 import type { Report } from "@/lib/data/analytics";
-import type { PaymentMethod } from "@/lib/domain/types";
+import { PAYMENT_METHODS } from "@/lib/domain/types";
 import { uz } from "@/lib/i18n/uz";
 import { cn } from "@/lib/utils";
 
-const METHODS: PaymentMethod[] = ["cash", "card", "transfer"];
+
 
 function Cell({ label, children, className }: { label: string; children: React.ReactNode; className?: string }) {
   return (
@@ -52,8 +52,8 @@ export function KpiStrip({ report }: { report: Report }) {
           <Usd value={report.shipping_usd} className="block text-base font-bold" />
         </Cell>
       </div>
-      <div className="grid grid-cols-3 border-t border-ink bg-paper/60 [&>*+*]:border-l [&>*+*]:border-rule-soft">
-        {METHODS.map((m) => (
+      <div className="grid grid-cols-2 border-t border-ink bg-paper/60 sm:grid-cols-4 [&>*]:border-rule-soft [&>*:nth-child(odd)]:border-r max-sm:[&>*:nth-child(-n+2)]:border-b sm:[&>*:not(:last-child)]:border-r">
+        {PAYMENT_METHODS.map((m) => (
           <Cell key={m} label={uz.payment[m]} className="bg-transparent">
             <Krw value={pay.get(m)?.revenue ?? 0} className="block text-base font-bold" />
             <span className="num text-xs text-ink-3">{uz.analytics.ordersCount(pay.get(m)?.orders ?? 0)}</span>

@@ -140,6 +140,11 @@ export function CheckoutScreen() {
       toast.error(uz.checkout.phoneInvalid);
       return;
     }
+    // Selling on credit needs to know who owes (the database refuses it too).
+    if (customerState.payment === "credit" && (!phone || !customerState.name.trim())) {
+      toast.error(uz.errors.NASIYA_NEEDS_CUSTOMER);
+      return;
+    }
     setBusy(true);
     setFailed(null);
     const sb = supabaseBrowser();

@@ -38,8 +38,8 @@ type Sort = "name" | "stock";
 function SummaryStrip({ summary }: { summary: InventorySummary | null }) {
   const cells: [string, number | undefined][] = [
     [uz.inventory.costValue, summary?.costValue],
-    [uz.inventory.retailValue, summary?.retailValue],
     [uz.inventory.wholesaleValue, summary?.wholesaleValue],
+    [uz.inventory.retailValue, summary?.retailValue],
   ];
   return (
     <div className="waybill mb-4 grid sm:grid-cols-3">
@@ -224,8 +224,8 @@ export function InventoryScreen() {
                   <th className="w-14 px-3 py-2"><span className="sr-only">{uz.inventory.photo}</span></th>
                   <th className="caption px-3 py-2">{uz.inventory.name}</th>
                   <th className="caption px-3 py-2 text-right">{uz.inventory.cost}</th>
-                  <th className="caption px-3 py-2 text-right">{uz.inventory.retail}</th>
                   <th className="caption px-3 py-2 text-right">{uz.inventory.wholesale}</th>
+                  <th className="caption px-3 py-2 text-right">{uz.inventory.retail}</th>
                   <th className="caption px-3 py-2 text-right">{uz.inventory.weightShort}</th>
                   <th className="caption w-52 px-3 py-2">{uz.inventory.stock}</th>
                   <th className="w-12 px-2 py-2" />
@@ -245,8 +245,8 @@ export function InventoryScreen() {
                         </p>
                       </td>
                       <td className="px-3 py-2 text-right text-ink-2"><Krw value={p.cost_price} /></td>
-                      <td className="px-3 py-2 text-right font-semibold"><Krw value={p.retail_price} /></td>
                       <td className="px-3 py-2 text-right font-semibold"><Krw value={p.wholesale_price} /></td>
+                      <td className="px-3 py-2 text-right font-semibold"><Krw value={p.retail_price} /></td>
                       <td className="px-3 py-2 text-right text-ink-2"><Weight grams={p.weight_g} /></td>
                       <td className="px-3 py-2">
                         <StockReadout stock={p.stock} threshold={p.low_stock_threshold} />
@@ -283,12 +283,12 @@ export function InventoryScreen() {
                         <dd className="text-ink-2"><Krw value={p.cost_price} /></dd>
                       </div>
                       <div className="border-l border-rule-soft px-2 py-1.5">
-                        <dt className="caption">{uz.inventory.retail}</dt>
-                        <dd className="font-semibold"><Krw value={p.retail_price} /></dd>
-                      </div>
-                      <div className="border-l border-rule-soft px-2 py-1.5">
                         <dt className="caption">{uz.inventory.wholesale}</dt>
                         <dd className="font-semibold"><Krw value={p.wholesale_price} /></dd>
+                      </div>
+                      <div className="border-l border-rule-soft px-2 py-1.5">
+                        <dt className="caption">{uz.inventory.retail}</dt>
+                        <dd className="font-semibold"><Krw value={p.retail_price} /></dd>
                       </div>
                     </dl>
                     <div className="flex items-center justify-between gap-3">

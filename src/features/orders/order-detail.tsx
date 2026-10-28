@@ -20,6 +20,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
 import { ApproveActions } from "@/features/orders/approve-actions";
+import { CreditPanel } from "@/features/orders/credit-panel";
 import { printOrder } from "@/features/print/print-order";
 import type { OrderWithItems } from "@/lib/data/orders";
 import { formatDateTime } from "@/lib/domain/dates";
@@ -182,6 +183,8 @@ export function OrderDetail({ order }: { order: OrderWithItems }) {
             </li>
           ))}
         </ul>
+
+        {order.payment_method === "credit" && <CreditPanel order={order} />}
 
         <div className="grid md:grid-cols-[1fr_22rem]">
           <section className="cell border-b border-ink md:border-r md:border-b-0">

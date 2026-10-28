@@ -22,6 +22,8 @@ export type MyOrder = {
   shipping_krw: number;
   shipping_usd: number;
   shipping_kg: number;
+  paid_krw: number;
+  credit_due_krw: number;
   approved_at: string | null;
   ready_at: string | null;
   picked_up_at: string | null;
