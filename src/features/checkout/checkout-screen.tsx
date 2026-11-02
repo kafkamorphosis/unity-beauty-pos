@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Camera, RotateCw, ScanBarcode } from "lucide-react";
+import { Camera, Check, RotateCw, ScanBarcode } from "lucide-react";
 import { toast } from "sonner";
 import { CameraScanner } from "@/components/scanner/camera-scanner";
 import { scanFeedback } from "@/components/scanner/feedback";
@@ -24,6 +24,7 @@ import type { ShippingRates } from "@/lib/domain/shipping";
 import type { Destination } from "@/lib/domain/types";
 import { supabaseBrowser } from "@/lib/supabase/client";
 import { uz } from "@/lib/i18n/uz";
+import { cn } from "@/lib/utils";
 import { CartRow } from "./cart-row";
 import { CustomerPanel, type CustomerState } from "./customer-panel";
 import { ProductSearch } from "./product-search";
@@ -65,6 +66,8 @@ export function CheckoutScreen() {
   const [tekpeOpen, setTekpeOpen] = useState(false);
   const [sheetOpen, setSheetOpen] = useState(false);
   const [camera, setCamera] = useState(false);
+  // Hammasi optom: every line at the wholesale price, new scans too; single lines can switch back.
+  const [allOptom, setAllOptom] = useState(() => lines.length > 0 && lines.every((l) => l.isWholesale));
 
   const phone = normalizePhone(customerState.phone, customerState.country);
   const phoneDigits = customerState.phone.replace(/\D/g, "").length;
@@ -105,7 +108,7 @@ export function CheckoutScreen() {
   }, [phone]);
 
   function addProduct(p: Product) {
-    dispatch({ type: "add", product: toCartProduct(p) });
+    dispatch({ type: "add", product: toCartProduct(p), wholesale: allOptom });
     setFresh((f) => ({ id: p.id, n: (f?.n ?? 0) + 1 }));
   }
 
@@ -219,6 +222,7 @@ export function CheckoutScreen() {
     setCustomerState((s) => ({ ...EMPTY_CUSTOMER, payment: s.payment }));
     setLookup(null);
     setFresh(null);
+    setAllOptom(false);
     setTimeout(() => searchRef.current?.focus(), 50);
   }
 
@@ -255,6 +259,28 @@ export function CheckoutScreen() {
       <section className="flex min-w-0 flex-col lg:border-r lg:border-ink" aria-label={uz.checkout.title}>
         <div className="flex items-center gap-2 border-b border-ink p-2">
           <ProductSearch ref={searchRef} onPick={addProduct} onBarcode={addByBarcode} />
+          <button
+            type="button"
+            role="switch"
+            aria-checked={allOptom}
+            onClick={() => {
+              setAllOptom(!allOptom);
+              dispatch({ type: "setAllWholesale", on: !allOptom });
+            }}
+            className={cn(
+              "flex h-11 shrink-0 items-center gap-1.5 rounded-sm border px-3 text-sm font-bold transition-colors duration-150",
+              allOptom ? "border-ink bg-ink text-cell" : "border-ink bg-cell hover:bg-paper",
+            )}
+          >
+            <span
+              aria-hidden
+              className={cn("flex size-4 items-center justify-center rounded-[3px] border", allOptom ? "border-cell bg-cell text-ink" : "border-ink")}
+            >
+              {allOptom && <Check className="size-3" strokeWidth={3} />}
+            </span>
+            <span className="max-sm:hidden">{uz.checkout.allOptom}</span>
+            <span className="sm:hidden">{uz.checkout.optom}</span>
+          </button>
           <Button variant="outline" size="icon" className="size-11" onClick={() => setCamera(true)} aria-label={uz.common.camera}>
             <Camera aria-hidden />
           </Button>

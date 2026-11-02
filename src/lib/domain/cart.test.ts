@@ -83,3 +83,21 @@ describe("refresh only touches the lines it asked about", () => {
     expect(cartReducer(s, { type: "refresh", ids: ["a", "b"], products: [A] }).map((l) => l.id)).toEqual(["a"]);
   });
 });
+
+describe("Hammasi optom", () => {
+  it("setAllWholesale switches every line on and off", () => {
+    let lines = cartReducer([], { type: "add", product: A });
+    lines = cartReducer(lines, { type: "add", product: B });
+    lines = cartReducer(lines, { type: "setAllWholesale", on: true });
+    expect(lines.every((l) => l.isWholesale)).toBe(true);
+    lines = cartReducer(lines, { type: "setAllWholesale", on: false });
+    expect(lines.some((l) => l.isWholesale)).toBe(false);
+  });
+  it("adds new products as wholesale while it is on; a single line can still be switched back", () => {
+    let lines = cartReducer([], { type: "add", product: A, wholesale: true });
+    expect(lines[0].isWholesale).toBe(true);
+    lines = cartReducer(lines, { type: "toggleWholesale", id: A.id });
+    lines = cartReducer(lines, { type: "add", product: A, wholesale: true });
+    expect(lines[0].isWholesale).toBe(false); // an existing line keeps its own choice
+  });
+});

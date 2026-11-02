@@ -90,7 +90,7 @@ npm --prefix desktop test
 npm --prefix desktop run dist
 ```
 
-Keyboard (managers): F1 Kassa (on Kassa: focus the scan field), F2 Ombor, F3 Buyurtmalar, F4 Tekpe, F9 checkout.
+Keyboard (managers): F1 Kassa (on Kassa: focus the scan field), F2 Ombor, F3 Buyurtmalar, F4 Nasiya, F5 Tekpe, F9 checkout.
 
 The installer is `desktop/dist/UnityBeautyPOS-Setup-<version>.exe`. From 0.2.0 it also prints seller box lists silently. To bake in your live address, put it in `desktop/config.json` (`{ "url": "https://your-app.vercel.app" }`) before `run dist`; otherwise the app asks for it on first start.
 

@@ -14,11 +14,13 @@ export type CartLine = CartProduct & { qty: number; isWholesale: boolean };
 export const MAX_QTY = 99_999;
 
 export type CartAction =
-  | { type: "add"; product: CartProduct }
+  /** wholesale: the line's Optom choice when it is new (Hammasi optom is on). */
+  | { type: "add"; product: CartProduct; wholesale?: boolean }
   | { type: "setQty"; id: string; qty: number }
   | { type: "inc"; id: string }
   | { type: "dec"; id: string }
   | { type: "toggleWholesale"; id: string }
+  | { type: "setAllWholesale"; on: boolean }
   | { type: "remove"; id: string }
   | { type: "clear" }
   | { type: "refresh"; ids: string[]; products: CartProduct[] };
@@ -33,7 +35,7 @@ export function cartReducer(lines: CartLine[], a: CartAction): CartLine[] {
       const existing = lines.find((l) => l.id === a.product.id);
       // Refresh product data (price/stock may have changed) while bumping qty.
       if (existing) return update(lines, a.product.id, (l) => ({ ...l, ...a.product, qty: Math.min(MAX_QTY, l.qty + 1) }));
-      return [...lines, { ...a.product, qty: 1, isWholesale: false }];
+      return [...lines, { ...a.product, qty: 1, isWholesale: a.wholesale ?? false }];
     }
     case "setQty": {
       const qty = Math.floor(a.qty);
@@ -46,6 +48,8 @@ export function cartReducer(lines: CartLine[], a: CartAction): CartLine[] {
       return update(lines, a.id, (l) => ({ ...l, qty: Math.max(1, l.qty - 1) }));
     case "toggleWholesale":
       return update(lines, a.id, (l) => ({ ...l, isWholesale: !l.isWholesale }));
+    case "setAllWholesale":
+      return lines.map((l) => ({ ...l, isWholesale: a.on }));
     case "remove":
       return lines.filter((l) => l.id !== a.id);
     case "clear":

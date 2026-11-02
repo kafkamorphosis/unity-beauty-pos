@@ -171,6 +171,7 @@ export const uz = {
     shipping: "Yetkazish",
     perOrder: "har buyurtma",
     tekpeNeedsCustomer: "Mijoz ismi va telefon raqamini kiriting",
+    allOptom: "Hammasi optom",
     shippingOnBox: "Yetkazish narxi quti boʻyicha hisoblanadi",
     tekpeNeedsAddress: "Mijoz ismi, telefon raqami, shahar va tumanini kiriting",
     city: "Shahar / viloyat",
