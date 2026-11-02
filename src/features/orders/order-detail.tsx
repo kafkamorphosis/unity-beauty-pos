@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { ArrowLeft, Ban, Loader2, Printer } from "lucide-react";
+import { ArrowLeft, Ban, Loader2, Pencil, Printer } from "lucide-react";
 import { toast } from "sonner";
 import { Krw, Weight } from "@/components/money";
 import { ProductThumb } from "@/components/product-thumb";
@@ -21,6 +21,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { ApproveActions } from "@/features/orders/approve-actions";
 import { CreditPanel } from "@/features/orders/credit-panel";
+import { OrderEditDialog } from "@/features/orders/order-edit-dialog";
 import { printOrder } from "@/features/print/print-order";
 import type { OrderWithItems } from "@/lib/data/orders";
 import { formatDateTime } from "@/lib/domain/dates";
@@ -45,6 +46,7 @@ function Field({ label, children, className }: { label: string; children: React.
 export function OrderDetail({ order }: { order: OrderWithItems }) {
   const router = useRouter();
   const [confirming, setConfirming] = useState(false);
+  const [editing, setEditing] = useState(false);
   const [cancelling, setCancelling] = useState(false);
 
   async function cancel() {
@@ -74,7 +76,13 @@ export function OrderDetail({ order }: { order: OrderWithItems }) {
             {uz.orders.back}
           </Link>
         </Button>
-        <div className="flex gap-2">
+        <div className="flex flex-wrap justify-end gap-2">
+          {order.status !== "cancelled" && (
+            <Button variant="outline" onClick={() => setEditing(true)}>
+              <Pencil aria-hidden />
+              {uz.common.edit}
+            </Button>
+          )}
           {order.status === "pending" && <ApproveActions order={order} onDone={() => router.refresh()} size="default" />}
           {order.status !== "cancelled" && order.status !== "pending" && (!order.box || order.box.status === "open") && (
             <Button variant="destructive" onClick={() => setConfirming(true)}>
@@ -226,6 +234,8 @@ export function OrderDetail({ order }: { order: OrderWithItems }) {
           </dl>
         </div>
       </div>
+
+      <OrderEditDialog order={order} open={editing} onClose={() => setEditing(false)} onSaved={() => router.refresh()} />
 
       <AlertDialog open={confirming} onOpenChange={setConfirming}>
         <AlertDialogContent>

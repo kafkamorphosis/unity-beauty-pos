@@ -222,6 +222,10 @@ export type Database = {
       cancel_order: { Args: { p_order_id: string }; Returns: OrderRow };
       approve_order: { Args: { p_order_id: string }; Returns: OrderRow };
       record_credit_payment: { Args: { p_order_id: string; p_amount: number }; Returns: OrderRow };
+      update_order_info: {
+        Args: { p_order_id: string; p_phone: string; p_name: string; p_payment: Database["public"]["Enums"]["payment_method"] };
+        Returns: OrderRow;
+      };
       close_box: { Args: { p_box_id: string }; Returns: BoxRow };
       box_picked_up: { Args: { p_box_id: string }; Returns: BoxRow };
       submit_seller_order: {
