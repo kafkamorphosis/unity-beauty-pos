@@ -100,8 +100,8 @@ export function AppShell({ navKey, user, children }: { navKey: NavKey; user: She
                 )}
               >
                 <item.icon className="size-4" aria-hidden />
-                {/* Icons only between md and xl so six destinations fit beside the logo. */}
-                <span className={cn(nav.length > 4 && "sr-only xl:not-sr-only")}>{item.label}</span>
+                {/* Icons only on narrower screens so every destination fits beside the logo. */}
+                <span className={cn(nav.length > 6 ? "sr-only 2xl:not-sr-only" : nav.length > 4 && "sr-only xl:not-sr-only")}>{item.label}</span>
                 {fKeys && F_KEYS[item.href] && (
                   <kbd className={cn("num hidden rounded-sm border px-1 text-[0.65rem] leading-4 font-semibold xl:inline", active ? "border-cell/40 text-cell/80" : "border-rule-soft text-ink-3")}>
                     {F_KEYS[item.href]}

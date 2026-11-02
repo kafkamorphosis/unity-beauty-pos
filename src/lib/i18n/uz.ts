@@ -28,6 +28,7 @@ export const uz = {
     analytics: "Statistika",
     notifications: "Bildirishnomalar",
     customers: "Mijozlar",
+    nasiya: "Nasiya",
     sell: "Sotuv",
     myOrders: "Buyurtmalarim",
     more: "Boshqa",
@@ -183,7 +184,6 @@ export const uz = {
   },
   orders: {
     title: "Buyurtmalar",
-    allOrders: "Barcha buyurtmalar",
     editTitle: "Buyurtmani tahrirlash",
     editHint: "Mijoz va toʻlov turini oʻzgartirish. Mahsulotlar va narxlar oʻzgarmaydi.",
     nameIsClient: "Ism mijozga tegishli: uning boshqa buyurtmalarida ham oʻzgaradi.",

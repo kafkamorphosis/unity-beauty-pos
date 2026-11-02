@@ -1,4 +1,4 @@
-import { Bell, Boxes, ChartColumn, Contact, ReceiptText, ScanBarcode, Settings, ShoppingBag, Truck, Users, type LucideIcon } from "lucide-react";
+import { Bell, Boxes, ChartColumn, Contact, HandCoins, ReceiptText, ScanBarcode, Settings, ShoppingBag, Truck, Users, type LucideIcon } from "lucide-react";
 import type { NavKey } from "@/lib/auth/home";
 import { uz } from "@/lib/i18n/uz";
 
@@ -22,6 +22,7 @@ export const NAV: Record<NavKey, NavItem[]> = {
     { href: "/", label: uz.nav.checkout, icon: ScanBarcode },
     { href: "/ombor", label: uz.nav.inventory, icon: Boxes },
     { href: "/buyurtmalar", label: uz.nav.orders, icon: ReceiptText },
+    { href: "/nasiya", label: uz.nav.nasiya, icon: HandCoins },
     { href: "/tekpe", label: uz.nav.tekpe, icon: Truck, badge: ["pending"] },
     { href: "/mijozlar", label: uz.nav.customers, icon: Contact, more: true },
     { href: "/statistika", label: uz.nav.analytics, icon: ChartColumn, more: true },

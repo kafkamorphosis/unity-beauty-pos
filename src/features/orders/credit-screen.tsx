@@ -18,7 +18,6 @@ import { supabaseBrowser } from "@/lib/supabase/client";
 import { uz } from "@/lib/i18n/uz";
 import { cn } from "@/lib/utils";
 import { CreditPaymentDialog } from "./credit-payment-dialog";
-import { OrdersSubnav } from "./orders-subnav";
 
 type Which = "due" | "paid";
 
@@ -44,8 +43,7 @@ export function CreditScreen() {
 
   return (
     <>
-      <PageHeader title={uz.orders.title} />
-      <OrdersSubnav />
+      <PageHeader title={uz.nasiya.title} />
 
       {which === "due" && (
         <div className="waybill mb-4 grid grid-cols-2 [&>*+*]:border-l [&>*+*]:border-ink">
